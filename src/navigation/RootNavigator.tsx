@@ -2,7 +2,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { useAuthContext } from '../contexts/AuthContext';
 import { AuthStack } from './AuthStack';
-import { MainTabs } from './MainTabs';
+import { MainStack } from './MainStack';
 import { colors } from '../theme/colors';
 
 export function RootNavigator() {
@@ -16,5 +16,5 @@ export function RootNavigator() {
     );
   }
 
-  return <NavigationContainer>{session ? <MainTabs /> : <AuthStack />}</NavigationContainer>;
+  return <NavigationContainer>{session ? <MainStack /> : <AuthStack />}</NavigationContainer>;
 }

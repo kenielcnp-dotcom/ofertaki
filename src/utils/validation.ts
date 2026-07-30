@@ -17,3 +17,20 @@ export const signInSchema = z.object({
 
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type SignInInput = z.infer<typeof signInSchema>;
+
+export const createPromotionSchema = z.object({
+  title: z.string().min(3, 'Título deve ter ao menos 3 caracteres').max(100),
+  description: z.string().max(500).optional(),
+  price: z.coerce.number().positive('Informe um preço válido'),
+  categoryId: z.string().uuid('Selecione uma categoria'),
+  storeName: z.string().max(100).optional(),
+  imageUri: z.string().min(1, 'A foto da promoção é obrigatória'),
+});
+
+export type CreatePromotionInput = z.infer<typeof createPromotionSchema>;
+
+export const commentSchema = z.object({
+  body: z.string().min(1, 'Escreva um comentário').max(500),
+});
+
+export type CommentInput = z.infer<typeof commentSchema>;

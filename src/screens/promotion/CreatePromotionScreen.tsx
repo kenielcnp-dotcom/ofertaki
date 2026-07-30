@@ -1,6 +1,121 @@
-import { EmptyState } from '../../components/common/EmptyState';
+import { useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Button } from '../../components/common/Button';
+import { Input } from '../../components/common/Input';
+import { CategorySelect } from '../../components/forms/CategorySelect';
+import { useCategories } from '../../hooks/useCategories';
+import { useCreatePromotion } from '../../hooks/useCreatePromotion';
+import { useImageUpload } from '../../hooks/useImageUpload';
+import { colors } from '../../theme/colors';
+import { spacing } from '../../theme/spacing';
+import { typography } from '../../theme/typography';
+import type { MainTabScreenProps } from '../../navigation/types';
 
-export function CreatePromotionScreen() {
-  // Fase 2 implementa o formulário de publicação (foto obrigatória) aqui.
-  return <EmptyState message="Publicar promoção em breve." />;
+type Props = MainTabScreenProps<'Publicar'>;
+
+export function CreatePromotionScreen({ navigation }: Props) {
+  const { categories } = useCategories();
+  const { uri: imageUri, picking, pickImage, reset: resetImage } = useImageUpload();
+  const { submit, submitting, error } = useCreatePromotion();
+
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [storeName, setStoreName] = useState('');
+  const [categoryId, setCategoryId] = useState<string | null>(null);
+
+  async function handleSubmit() {
+    const ok = await submit({
+      title,
+      description: description || undefined,
+      price: Number(price.replace(',', '.')),
+      storeName: storeName || undefined,
+      categoryId: categoryId ?? '',
+      imageUri: imageUri ?? '',
+    });
+
+    if (ok) {
+      setTitle('');
+      setDescription('');
+      setPrice('');
+      setStoreName('');
+      setCategoryId(null);
+      resetImage();
+      navigation.navigate('Home');
+    }
+  }
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={typography.title}>Publicar promoção</Text>
+
+      <View style={styles.imageSection}>
+        {imageUri ? (
+          <Image source={{ uri: imageUri }} style={styles.preview} />
+        ) : (
+          <View style={styles.placeholder}>
+            <Text style={styles.placeholderText}>Nenhuma foto selecionada</Text>
+          </View>
+        )}
+        <Button
+          label={imageUri ? 'Trocar foto' : 'Selecionar foto'}
+          variant="secondary"
+          loading={picking}
+          onPress={pickImage}
+        />
+      </View>
+
+      <Input label="Título" value={title} onChangeText={setTitle} placeholder="Ex: Arroz 5kg" />
+      <Input
+        label="Descrição"
+        value={description}
+        onChangeText={setDescription}
+        placeholder="Detalhes da promoção"
+        multiline
+      />
+      <Input
+        label="Preço (R$)"
+        value={price}
+        onChangeText={setPrice}
+        placeholder="Ex: 19,90"
+        keyboardType="decimal-pad"
+      />
+      <Input
+        label="Loja"
+        value={storeName}
+        onChangeText={setStoreName}
+        placeholder="Ex: Supermercado Central"
+      />
+
+      <CategorySelect categories={categories} value={categoryId} onChange={setCategoryId} />
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+      <Button label="Publicar" loading={submitting} onPress={handleSubmit} />
+    </ScrollView>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  content: { padding: spacing.lg },
+  imageSection: { marginBottom: spacing.lg, alignItems: 'center' },
+  preview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    marginBottom: spacing.md,
+    backgroundColor: colors.surface,
+  },
+  placeholder: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    marginBottom: spacing.md,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholderText: { color: colors.textMuted },
+  errorText: { color: colors.danger, marginBottom: spacing.md },
+});
