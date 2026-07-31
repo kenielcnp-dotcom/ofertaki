@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   title: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: spacing.md },
-  option: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },
+  option: { flexDirection: 'row', alignItems: 'center', minHeight: 44, paddingVertical: spacing.sm },
   radio: {
     width: 18,
     height: 18,

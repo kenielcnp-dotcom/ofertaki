@@ -22,7 +22,12 @@ export function PromotionCard({
       onPress={onPress}
       style={styles.card}
     >
-      <Image source={{ uri: promotion.image_url }} style={styles.image} />
+      <Image
+        source={{ uri: promotion.image_url }}
+        style={styles.image}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      />
       <View style={styles.body}>
         <Text style={typography.subtitle} numberOfLines={2}>
           {promotion.title}

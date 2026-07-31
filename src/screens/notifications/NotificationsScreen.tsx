@@ -1,5 +1,7 @@
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { EmptyState } from '../../components/common/EmptyState';
+import { ErrorState } from '../../components/common/ErrorState';
+import { Skeleton } from '../../components/common/Skeleton';
 import { useNotifications } from '../../hooks/useNotifications';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
@@ -22,11 +24,21 @@ function describe(notification: NotificationWithActor) {
 }
 
 export function NotificationsScreen({ navigation }: Props) {
-  const { notifications, unreadCount, loading, refetch, isRefetching, markAsRead, markAllAsRead } =
+  const { notifications, unreadCount, loading, isError, refetch, isRefetching, markAsRead, markAllAsRead } =
     useNotifications();
 
   if (loading) {
-    return <ActivityIndicator style={styles.loading} color={colors.primary} />;
+    return (
+      <View style={styles.content}>
+        <Skeleton height={56} style={styles.skeletonRow} />
+        <Skeleton height={56} style={styles.skeletonRow} />
+        <Skeleton height={56} style={styles.skeletonRow} />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return <ErrorState message="Não foi possível carregar as notificações." onRetry={refetch} />;
   }
 
   if (notifications.length === 0) {
@@ -66,8 +78,8 @@ export function NotificationsScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  loading: { flex: 1 },
   content: { padding: spacing.lg },
+  skeletonRow: { marginBottom: spacing.sm },
   markAllRow: { paddingBottom: spacing.md },
   markAllText: { color: colors.primary, fontWeight: '600' },
   row: {

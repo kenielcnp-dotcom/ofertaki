@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../components/common/Button';
 import { EmptyState } from '../../components/common/EmptyState';
+import { ErrorState } from '../../components/common/ErrorState';
 import { Input } from '../../components/common/Input';
+import { Skeleton } from '../../components/common/Skeleton';
 import { useListaCompras } from '../../hooks/useListaCompras';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
@@ -15,7 +17,7 @@ function formatPrice(price: number) {
 }
 
 export function ListaScreen({ navigation }: Props) {
-  const { items, loading, addTextItem, setPurchased, removeItem } = useListaCompras();
+  const { items, loading, isError, refetch, addTextItem, setPurchased, removeItem } = useListaCompras();
   const [newItemText, setNewItemText] = useState('');
 
   function handleAddTextItem() {
@@ -45,7 +47,13 @@ export function ListaScreen({ navigation }: Props) {
       </View>
 
       {loading ? (
-        <ActivityIndicator style={styles.loading} color={colors.primary} />
+        <View style={styles.listContent}>
+          <Skeleton height={64} style={styles.skeletonRow} />
+          <Skeleton height={64} style={styles.skeletonRow} />
+          <Skeleton height={64} style={styles.skeletonRow} />
+        </View>
+      ) : isError ? (
+        <ErrorState message="Não foi possível carregar sua lista." onRetry={refetch} />
       ) : items.length === 0 ? (
         <EmptyState message="Sua lista de compras está vazia. Adicione itens manualmente ou a partir do feed de promoções." />
       ) : (
@@ -65,7 +73,12 @@ export function ListaScreen({ navigation }: Props) {
                 }}
               >
                 {item.promotions?.image_url ? (
-                  <Image source={{ uri: item.promotions.image_url }} style={styles.image} />
+                  <Image
+                    source={{ uri: item.promotions.image_url }}
+                    style={styles.image}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                  />
                 ) : null}
                 <View style={styles.info}>
                   <Text style={[styles.title, item.is_purchased && styles.titlePurchased]} numberOfLines={2}>
@@ -80,6 +93,7 @@ export function ListaScreen({ navigation }: Props) {
                     accessibilityRole="button"
                     accessibilityLabel={item.is_purchased ? 'Marcar como não comprado' : 'Marcar como comprado'}
                     onPress={() => setPurchased.mutate({ id: item.id, isPurchased: !item.is_purchased })}
+                    hitSlop={8}
                     style={[styles.checkbox, item.is_purchased && styles.checkboxChecked]}
                   >
                     {item.is_purchased ? <Text style={styles.checkboxMark}>✓</Text> : null}
@@ -88,6 +102,7 @@ export function ListaScreen({ navigation }: Props) {
                     accessibilityRole="button"
                     accessibilityLabel="Remover da lista"
                     onPress={() => removeItem.mutate(item.id)}
+                    hitSlop={8}
                   >
                     <Text style={styles.remove}>Remover</Text>
                   </Pressable>
@@ -107,8 +122,8 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: 0,
   },
-  loading: { flex: 1 },
   listContent: { padding: spacing.lg, paddingTop: spacing.sm },
+  skeletonRow: { marginBottom: spacing.sm },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

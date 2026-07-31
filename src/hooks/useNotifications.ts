@@ -47,6 +47,7 @@ export function useNotifications() {
     notifications,
     unreadCount,
     loading: query.isLoading,
+    isError: query.isError,
     refetch: query.refetch,
     isRefetching: query.isRefetching,
     markAsRead,

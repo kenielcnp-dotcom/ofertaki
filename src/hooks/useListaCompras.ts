@@ -61,6 +61,8 @@ export function useListaCompras() {
   return {
     items: listQuery.data ?? [],
     loading: listQuery.isLoading,
+    isError: listQuery.isError,
+    refetch: listQuery.refetch,
     addItem,
     addTextItem,
     removeItem,

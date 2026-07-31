@@ -1,5 +1,6 @@
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { EmptyState } from '../../components/common/EmptyState';
+import { Skeleton } from '../../components/common/Skeleton';
 import { RankingItem } from '../../components/ranking/RankingItem';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { RANKING_LIMIT, useMonthlyRanking } from '../../hooks/useMonthlyRanking';
@@ -18,7 +19,13 @@ export function RankingScreen() {
   const userOutsideTop = !!userRow && userRow.rank > RANKING_LIMIT;
 
   if (isLoading) {
-    return <ActivityIndicator style={styles.loading} color={colors.primary} />;
+    return (
+      <View style={styles.listContent}>
+        <Skeleton height={48} style={styles.skeletonRow} />
+        <Skeleton height={48} style={styles.skeletonRow} />
+        <Skeleton height={48} style={styles.skeletonRow} />
+      </View>
+    );
   }
 
   if (isError) {
@@ -56,8 +63,8 @@ export function RankingScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  loading: { flex: 1 },
   listContent: { padding: spacing.lg, gap: spacing.xs },
+  skeletonRow: { marginBottom: spacing.sm },
   footer: {
     marginTop: spacing.lg,
     paddingTop: spacing.md,

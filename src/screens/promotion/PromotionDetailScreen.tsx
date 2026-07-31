@@ -1,7 +1,9 @@
 import { Fragment, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../components/common/Button';
+import { ErrorState } from '../../components/common/ErrorState';
 import { Input } from '../../components/common/Input';
+import { Skeleton } from '../../components/common/Skeleton';
 import { ReportModal } from '../../components/promotion/ReportModal';
 import { usePromotionDetail } from '../../hooks/usePromotionDetail';
 import { useListaCompras } from '../../hooks/useListaCompras';
@@ -20,16 +22,37 @@ function formatPrice(price: number) {
 
 export function PromotionDetailScreen({ route }: Props) {
   const { promotionId } = route.params;
-  const { promotion, loading, comments, hasLiked, hasConfirmed, isAuthor, toggleLike, toggleConfirm, addComment } =
-    usePromotionDetail(promotionId);
+  const {
+    promotion,
+    loading,
+    isError,
+    refetch,
+    comments,
+    hasLiked,
+    hasConfirmed,
+    isAuthor,
+    toggleLike,
+    toggleConfirm,
+    addComment,
+  } = usePromotionDetail(promotionId);
   const { addItem } = useListaCompras();
   const [commentBody, setCommentBody] = useState('');
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const { submit: submitReport, submitting: reportSubmitting, error: reportError } =
     useReportPromotion(promotionId);
 
-  if (loading || !promotion) {
-    return <ActivityIndicator style={styles.loading} color={colors.primary} />;
+  if (loading) {
+    return (
+      <View style={styles.content}>
+        <Skeleton height={220} borderRadius={12} style={styles.skeletonImage} />
+        <Skeleton height={24} width="70%" style={styles.skeletonLine} />
+        <Skeleton height={20} width="30%" style={styles.skeletonLine} />
+      </View>
+    );
+  }
+
+  if (isError || !promotion) {
+    return <ErrorState message="Não foi possível carregar essa promoção." onRetry={refetch} />;
   }
 
   return (
@@ -46,7 +69,12 @@ export function PromotionDetailScreen({ route }: Props) {
       )}
       ListHeaderComponent={
         <View>
-          <Image source={{ uri: promotion.image_url }} style={styles.image} />
+          <Image
+            source={{ uri: promotion.image_url }}
+            style={styles.image}
+            accessible
+            accessibilityLabel={`Foto de ${promotion.title}`}
+          />
           <Text style={typography.title}>{promotion.title}</Text>
           <Text style={styles.price}>{formatPrice(promotion.price)}</Text>
           {promotion.mercados?.name ? <Text style={styles.store}>{promotion.mercados.name}</Text> : null}
@@ -127,7 +155,8 @@ export function PromotionDetailScreen({ route }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: spacing.lg },
-  loading: { flex: 1 },
+  skeletonImage: { marginBottom: spacing.md },
+  skeletonLine: { marginBottom: spacing.sm },
   image: { width: '100%', height: 220, borderRadius: 12, marginBottom: spacing.md, backgroundColor: colors.surface },
   price: { color: colors.primary, fontWeight: '700', fontSize: 20, marginTop: spacing.xs },
   store: { color: colors.textMuted, marginTop: spacing.xs },

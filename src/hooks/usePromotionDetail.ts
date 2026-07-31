@@ -165,6 +165,8 @@ export function usePromotionDetail(promotionId: string) {
   return {
     promotion: promotionQuery.data,
     loading: promotionQuery.isLoading,
+    isError: promotionQuery.isError,
+    refetch: promotionQuery.refetch,
     comments: commentsQuery.data ?? [],
     hasLiked,
     hasConfirmed,

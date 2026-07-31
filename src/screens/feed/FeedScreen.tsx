@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import { Input } from '../../components/common/Input';
 import { EmptyState } from '../../components/common/EmptyState';
+import { ErrorState } from '../../components/common/ErrorState';
 import { PromotionCard } from '../../components/promotion/PromotionCard';
+import { PromotionCardSkeleton } from '../../components/promotion/PromotionCardSkeleton';
 import { usePromotions } from '../../hooks/usePromotions';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
@@ -12,8 +14,16 @@ type Props = MainTabScreenProps<'Home'>;
 
 export function FeedScreen({ navigation }: Props) {
   const [search, setSearch] = useState('');
-  const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage, refetch, isRefetching } =
-    usePromotions(search || undefined);
+  const {
+    data,
+    isLoading,
+    isError,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    refetch,
+    isRefetching,
+  } = usePromotions(search || undefined);
 
   const promotions = data?.pages.flat() ?? [];
 
@@ -29,7 +39,13 @@ export function FeedScreen({ navigation }: Props) {
         />
       </View>
       {isLoading ? (
-        <ActivityIndicator style={styles.loading} color={colors.primary} />
+        <View style={styles.listContent}>
+          <PromotionCardSkeleton />
+          <PromotionCardSkeleton />
+          <PromotionCardSkeleton />
+        </View>
+      ) : isError ? (
+        <ErrorState message="Não foi possível carregar as promoções." onRetry={refetch} />
       ) : promotions.length === 0 ? (
         <EmptyState message="Nenhuma promoção ainda. Seja o primeiro a publicar!" />
       ) : (
