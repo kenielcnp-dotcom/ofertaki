@@ -38,12 +38,27 @@ _(a Fase 2 nunca tinha sido feita antes; foi feita junto com a 3 porque uma depe
 - **Agora:** tabela `mercados` (migrations 0007/0008), campo "Loja" virou dropdown de verdade (`MarketSelect`, modal com lista), categoria "Mercado" é atribuída automaticamente (chips de categoria sumiram da tela, já que o MVP só cobre mercado).
 - Seed inicial genérico: Carrefour, Extra, Assaí, Pão de Açúcar, Dia — para ajustar depois pelo dashboard.
 - Decisão registrada: não usar uma tabela por mercado (quebraria paginação do feed e as FKs de likes/comments/confirmations) — usar tabela normalizada + índice.
-- Estado técnico: `npx tsc --noEmit` limpo, todas as 8 migrations sincronizadas com o Supabase remoto, tudo commitado e com push feito pro GitHub.
+- Estado técnico: `npx tsc --noEmit` limpo, migrations sincronizadas com o Supabase remoto, tudo commitado e com push feito pro GitHub.
+
+### Gamificação/Ranking (Fase 4)
+
+- `points_ledger` (+10 publicar, +2 curtida recebida, +1 confirmação recebida), `reputation_score` em `profiles` sincronizado via trigger e protegido por `REVOKE` (cliente não escreve direto).
+- Função `get_monthly_ranking` (RPC) retorna Top 50 do mês + posição do usuário fora do Top 50. `RankingScreen`/`RankingItem` com medalhas ouro/prata/bronze, acessível a partir do Perfil.
+- Lista de compras ganhou itens de texto livre (não precisam mais vir de uma promoção publicada) — `lista_compras.promotion_id` agora é opcional.
+
+### Notificações, busca e denúncia (Fase 5)
+
+- Migrations `0011_notifications_reports.sql` e `0012_promotions_search.sql` aplicadas.
+- `notifications`: gerada por trigger quando a promoção de alguém recebe curtida/comentário/confirmação (nunca escrita direto pelo cliente). `NotificationsScreen` já é real — lista, Realtime (nova notificação aparece sem refresh), marcar como lida/marcar todas.
+- Busca da Home trocou `ilike` por full-text (`tsvector` + índice GIN em `title`/`description`, busca via `websearch` em português).
+- `reports`: botão "Denunciar promoção" no detalhe, com motivo (expirada/falsa/preço errado/impróprio/outro). Ao atingir 5 denúncias de usuários diferentes, a promoção vira `status = 'removed'` automaticamente (trigger).
+- **Fora de escopo por decisão consciente:** filtro por categoria na Home não foi construído — hoje toda promoção usa a categoria "Mercado" fixa, então o filtro não teria efeito prático ainda. Fica pra quando outras categorias entrarem.
+- Estado técnico: `npx tsc --noEmit` limpo, todas as 12 migrations sincronizadas com o Supabase remoto, commitado e enviado pro GitHub.
 
 ## O que falta
 
-- **Fase 5 — Notificações/busca/categorias/denúncia:** Realtime de verdade em Notificações (hoje é stub), busca full-text (GIN) no lugar do `ilike` atual, filtro por categoria, fluxo de denúncia (reports).
 - **Fase 6 — Polish:** acessibilidade, skeleton loaders, tratamento de erro/offline, testes automatizados, revisão final de RLS.
 - **Integração com o time de design** — combinada para "mais tarde" (ainda não veio); telas atuais usam estilo funcional simples (Button/Input/EmptyState), sem redesenho visual.
+- Filtro por categoria na Home (adiado — ver acima).
 
 _Plano de referência completo em:_ `C:\Users\kenie\.claude\plans\me-mostre-como-vc-staged-lightning.md`
