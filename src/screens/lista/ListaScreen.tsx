@@ -1,5 +1,8 @@
-import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Button } from '../../components/common/Button';
 import { EmptyState } from '../../components/common/EmptyState';
+import { Input } from '../../components/common/Input';
 import { useListaCompras } from '../../hooks/useListaCompras';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
@@ -12,58 +15,100 @@ function formatPrice(price: number) {
 }
 
 export function ListaScreen({ navigation }: Props) {
-  const { items, setPurchased, removeItem } = useListaCompras();
+  const { items, loading, addTextItem, setPurchased, removeItem } = useListaCompras();
+  const [newItemText, setNewItemText] = useState('');
 
-  if (items.length === 0) {
-    return <EmptyState message="Sua lista de compras está vazia. Adicione promoções a partir do feed." />;
+  function handleAddTextItem() {
+    if (!newItemText.trim()) return;
+    addTextItem.mutate(newItemText.trim(), {
+      onSuccess: () => setNewItemText(''),
+    });
   }
 
   return (
-    <FlatList
-      contentContainerStyle={styles.content}
-      data={items}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <Pressable
-          style={styles.row}
-          onPress={() =>
-            item.promotions && navigation.navigate('PromotionDetail', { promotionId: item.promotions.id })
-          }
-        >
-          {item.promotions?.image_url ? (
-            <Image source={{ uri: item.promotions.image_url }} style={styles.image} />
-          ) : null}
-          <View style={styles.info}>
-            <Text style={[styles.title, item.is_purchased && styles.titlePurchased]} numberOfLines={2}>
-              {item.promotions?.title ?? 'Promoção removida'}
-            </Text>
-            {item.promotions ? <Text style={styles.price}>{formatPrice(item.promotions.price)}</Text> : null}
-          </View>
-          <View style={styles.actions}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={item.is_purchased ? 'Marcar como não comprado' : 'Marcar como comprado'}
-              onPress={() => setPurchased.mutate({ id: item.id, isPurchased: !item.is_purchased })}
-              style={[styles.checkbox, item.is_purchased && styles.checkboxChecked]}
-            >
-              {item.is_purchased ? <Text style={styles.checkboxMark}>✓</Text> : null}
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Remover da lista"
-              onPress={() => removeItem.mutate(item.id)}
-            >
-              <Text style={styles.remove}>Remover</Text>
-            </Pressable>
-          </View>
-        </Pressable>
+    <View style={styles.container}>
+      <View style={styles.form}>
+        <Input
+          label="Novo item"
+          value={newItemText}
+          onChangeText={setNewItemText}
+          placeholder="Digite o nome do item"
+          onSubmitEditing={handleAddTextItem}
+          returnKeyType="done"
+        />
+        <Button
+          label="Adicionar"
+          loading={addTextItem.isPending}
+          disabled={!newItemText.trim()}
+          onPress={handleAddTextItem}
+        />
+      </View>
+
+      {loading ? (
+        <ActivityIndicator style={styles.loading} color={colors.primary} />
+      ) : items.length === 0 ? (
+        <EmptyState message="Sua lista de compras está vazia. Adicione itens manualmente ou a partir do feed de promoções." />
+      ) : (
+        <FlatList
+          contentContainerStyle={styles.listContent}
+          data={items}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => {
+            const displayTitle = item.promotions?.title ?? item.text ?? 'Item';
+            return (
+              <Pressable
+                style={styles.row}
+                onPress={() => {
+                  if (item.promotions) {
+                    navigation.navigate('PromotionDetail', { promotionId: item.promotions.id });
+                  }
+                }}
+              >
+                {item.promotions?.image_url ? (
+                  <Image source={{ uri: item.promotions.image_url }} style={styles.image} />
+                ) : null}
+                <View style={styles.info}>
+                  <Text style={[styles.title, item.is_purchased && styles.titlePurchased]} numberOfLines={2}>
+                    {displayTitle}
+                  </Text>
+                  {item.promotions ? (
+                    <Text style={styles.price}>{formatPrice(item.promotions.price)}</Text>
+                  ) : null}
+                </View>
+                <View style={styles.actions}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={item.is_purchased ? 'Marcar como não comprado' : 'Marcar como comprado'}
+                    onPress={() => setPurchased.mutate({ id: item.id, isPurchased: !item.is_purchased })}
+                    style={[styles.checkbox, item.is_purchased && styles.checkboxChecked]}
+                  >
+                    {item.is_purchased ? <Text style={styles.checkboxMark}>✓</Text> : null}
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Remover da lista"
+                    onPress={() => removeItem.mutate(item.id)}
+                  >
+                    <Text style={styles.remove}>Remover</Text>
+                  </Pressable>
+                </View>
+              </Pressable>
+            );
+          }}
+        />
       )}
-    />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: spacing.lg },
+  container: { flex: 1 },
+  form: {
+    padding: spacing.lg,
+    paddingBottom: 0,
+  },
+  loading: { flex: 1 },
+  listContent: { padding: spacing.lg, paddingTop: spacing.sm },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

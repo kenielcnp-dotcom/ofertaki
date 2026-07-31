@@ -25,7 +25,18 @@ export function useListaCompras() {
   const addItem = useMutation({
     mutationFn: async (promotionId: string) => {
       if (!userId) throw new Error('Faça login para usar a lista de compras.');
-      const { error } = await listaComprasService.add(userId, promotionId);
+      const { error } = await listaComprasService.add({ user_id: userId, promotion_id: promotionId });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const addTextItem = useMutation({
+    mutationFn: async (text: string) => {
+      if (!userId) throw new Error('Faça login para usar a lista de compras.');
+      const trimmed = text.trim();
+      if (!trimmed) throw new Error('O item não pode estar vazio.');
+      const { error } = await listaComprasService.add({ user_id: userId, text: trimmed });
       if (error) throw error;
     },
     onSuccess: invalidate,
@@ -51,6 +62,7 @@ export function useListaCompras() {
     items: listQuery.data ?? [],
     loading: listQuery.isLoading,
     addItem,
+    addTextItem,
     removeItem,
     setPurchased,
   };

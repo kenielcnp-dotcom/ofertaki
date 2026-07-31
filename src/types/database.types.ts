@@ -154,21 +154,24 @@ export type Database = {
           created_at: string
           id: string
           is_purchased: boolean
-          promotion_id: string
+          promotion_id: string | null
+          text: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           is_purchased?: boolean
-          promotion_id: string
+          promotion_id?: string | null
+          text?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
           is_purchased?: boolean
-          promotion_id?: string
+          promotion_id?: string | null
+          text?: string | null
           user_id?: string
         }
         Relationships: [
@@ -208,6 +211,38 @@ export type Database = {
           slug?: string
         }
         Relationships: []
+      }
+      points_ledger: {
+        Row: {
+          created_at: string
+          id: string
+          points: number
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          points: number
+          reason: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          points?: number
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "points_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -335,6 +370,20 @@ export type Database = {
       adjust_promotion_counter: {
         Args: { p_column: string; p_delta: number; p_promotion_id: string }
         Returns: undefined
+      }
+      get_monthly_ranking: {
+        Args: {
+          p_limit?: number
+          p_user_id?: string
+        }
+        Returns: {
+          avatar_url: string | null
+          display_name: string | null
+          rank: number
+          total_points: number
+          user_id: string
+          username: string
+        }[]
       }
     }
     Enums: {

@@ -1,5 +1,5 @@
 import { supabase } from './supabase/client';
-import type { ListaCompraItem, Promotion } from '../types/promotion';
+import type { ListaCompraInsert, ListaCompraItem, Promotion } from '../types/promotion';
 
 export type ListaCompraWithPromotion = ListaCompraItem & {
   promotions:
@@ -17,8 +17,8 @@ export const listaComprasService = {
     return { ...result, data: result.data as ListaCompraWithPromotion[] | null };
   },
 
-  async add(userId: string, promotionId: string) {
-    return supabase.from('lista_compras').insert({ user_id: userId, promotion_id: promotionId });
+  async add(input: ListaCompraInsert) {
+    return supabase.from('lista_compras').insert(input).select().single();
   },
 
   async remove(id: string) {
