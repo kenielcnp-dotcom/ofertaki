@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../components/common/Button';
 import { EmptyState } from '../../components/common/EmptyState';
@@ -6,7 +6,9 @@ import { ErrorState } from '../../components/common/ErrorState';
 import { Input } from '../../components/common/Input';
 import { Skeleton } from '../../components/common/Skeleton';
 import { useListaCompras } from '../../hooks/useListaCompras';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
+import { radius } from '../../theme/radius';
 import { spacing } from '../../theme/spacing';
 import type { MainTabScreenProps } from '../../navigation/types';
 
@@ -17,6 +19,8 @@ function formatPrice(price: number) {
 }
 
 export function ListaScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, loading, isError, refetch, addTextItem, setPurchased, removeItem } = useListaCompras();
   const [newItemText, setNewItemText] = useState('');
 
@@ -116,37 +120,38 @@ export function ListaScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  form: {
-    padding: spacing.lg,
-    paddingBottom: 0,
-  },
-  listContent: { padding: spacing.lg, paddingTop: spacing.sm },
-  skeletonRow: { marginBottom: spacing.sm },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  image: { width: 56, height: 56, borderRadius: 8, backgroundColor: colors.surface },
-  info: { flex: 1, marginLeft: spacing.md },
-  title: { color: colors.text, fontWeight: '600' },
-  titlePurchased: { textDecorationLine: 'line-through', color: colors.textMuted },
-  price: { color: colors.primary, marginTop: spacing.xs },
-  actions: { alignItems: 'center', gap: spacing.sm },
-  checkbox: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxChecked: { backgroundColor: colors.success, borderColor: colors.success },
-  checkboxMark: { color: colors.primaryText, fontWeight: '700' },
-  remove: { color: colors.danger, fontSize: 12 },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    form: {
+      padding: spacing.lg,
+      paddingBottom: 0,
+    },
+    listContent: { padding: spacing.lg, paddingTop: spacing.sm },
+    skeletonRow: { marginBottom: spacing.sm },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    image: { width: 56, height: 56, borderRadius: radius.sm, backgroundColor: colors.surface },
+    info: { flex: 1, marginLeft: spacing.md },
+    title: { color: colors.text, fontWeight: '600' },
+    titlePurchased: { textDecorationLine: 'line-through', color: colors.textMuted },
+    price: { color: colors.primary, marginTop: spacing.xs },
+    actions: { alignItems: 'center', gap: spacing.sm },
+    checkbox: {
+      width: 28,
+      height: 28,
+      borderRadius: 6,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    checkboxChecked: { backgroundColor: colors.success, borderColor: colors.success },
+    checkboxMark: { color: colors.primaryText, fontWeight: '700' },
+    remove: { color: colors.danger, fontSize: 12 },
+  });

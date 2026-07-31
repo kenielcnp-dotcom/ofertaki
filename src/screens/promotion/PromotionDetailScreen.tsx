@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../components/common/Button';
 import { ErrorState } from '../../components/common/ErrorState';
@@ -8,7 +8,9 @@ import { ReportModal } from '../../components/promotion/ReportModal';
 import { usePromotionDetail } from '../../hooks/usePromotionDetail';
 import { useListaCompras } from '../../hooks/useListaCompras';
 import { useReportPromotion } from '../../hooks/useReportPromotion';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
+import { radius } from '../../theme/radius';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -21,6 +23,8 @@ function formatPrice(price: number) {
 }
 
 export function PromotionDetailScreen({ route }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { promotionId } = route.params;
   const {
     promotion,
@@ -44,7 +48,7 @@ export function PromotionDetailScreen({ route }: Props) {
   if (loading) {
     return (
       <View style={styles.content}>
-        <Skeleton height={220} borderRadius={12} style={styles.skeletonImage} />
+        <Skeleton height={220} borderRadius={radius.md} style={styles.skeletonImage} />
         <Skeleton height={24} width="70%" style={styles.skeletonLine} />
         <Skeleton height={20} width="30%" style={styles.skeletonLine} />
       </View>
@@ -75,7 +79,7 @@ export function PromotionDetailScreen({ route }: Props) {
             accessible
             accessibilityLabel={`Foto de ${promotion.title}`}
           />
-          <Text style={typography.title}>{promotion.title}</Text>
+          <Text style={[typography.title, styles.title]}>{promotion.title}</Text>
           <Text style={styles.price}>{formatPrice(promotion.price)}</Text>
           {promotion.mercados?.name ? <Text style={styles.store}>{promotion.mercados.name}</Text> : null}
           {promotion.description ? <Text style={styles.description}>{promotion.description}</Text> : null}
@@ -152,21 +156,23 @@ export function PromotionDetailScreen({ route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { padding: spacing.lg },
-  skeletonImage: { marginBottom: spacing.md },
-  skeletonLine: { marginBottom: spacing.sm },
-  image: { width: '100%', height: 220, borderRadius: 12, marginBottom: spacing.md, backgroundColor: colors.surface },
-  price: { color: colors.primary, fontWeight: '700', fontSize: 20, marginTop: spacing.xs },
-  store: { color: colors.textMuted, marginTop: spacing.xs },
-  description: { marginTop: spacing.md, color: colors.text },
-  actionsRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg, marginBottom: spacing.md },
-  commentsTitle: { marginTop: spacing.lg, marginBottom: spacing.sm },
-  comment: { paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
-  commentBody: { color: colors.text },
-  empty: { color: colors.textMuted, marginBottom: spacing.md },
-  commentForm: { marginTop: spacing.md },
-  reportLink: { marginTop: spacing.md, alignItems: 'center' },
-  reportLinkText: { color: colors.danger, fontSize: 13 },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: spacing.lg },
+    skeletonImage: { marginBottom: spacing.md },
+    skeletonLine: { marginBottom: spacing.sm },
+    image: { width: '100%', height: 220, borderRadius: radius.md, marginBottom: spacing.md, backgroundColor: colors.surface },
+    title: { color: colors.text },
+    price: { color: colors.primary, fontWeight: '700', fontSize: 20, marginTop: spacing.xs },
+    store: { color: colors.textMuted, marginTop: spacing.xs },
+    description: { marginTop: spacing.md, color: colors.text },
+    actionsRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg, marginBottom: spacing.md },
+    commentsTitle: { color: colors.text, marginTop: spacing.lg, marginBottom: spacing.sm },
+    comment: { paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
+    commentBody: { color: colors.text },
+    empty: { color: colors.textMuted, marginBottom: spacing.md },
+    commentForm: { marginTop: spacing.md },
+    reportLink: { marginTop: spacing.md, alignItems: 'center' },
+    reportLinkText: { color: colors.danger, fontSize: 13 },
+  });

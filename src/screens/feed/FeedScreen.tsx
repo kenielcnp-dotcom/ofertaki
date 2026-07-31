@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import { Input } from '../../components/common/Input';
 import { EmptyState } from '../../components/common/EmptyState';
@@ -6,13 +6,16 @@ import { ErrorState } from '../../components/common/ErrorState';
 import { PromotionCard } from '../../components/promotion/PromotionCard';
 import { PromotionCardSkeleton } from '../../components/promotion/PromotionCardSkeleton';
 import { usePromotions } from '../../hooks/usePromotions';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import type { MainTabScreenProps } from '../../navigation/types';
 
 type Props = MainTabScreenProps<'Home'>;
 
 export function FeedScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [search, setSearch] = useState('');
   const {
     data,
@@ -74,9 +77,10 @@ export function FeedScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  searchContainer: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
-  listContent: { padding: spacing.lg },
-  loading: { flex: 1 },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    searchContainer: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+    listContent: { padding: spacing.lg },
+    loading: { flex: 1 },
+  });

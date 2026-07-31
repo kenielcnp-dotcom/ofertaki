@@ -1,5 +1,8 @@
+import { useMemo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
+import { radius } from '../../theme/radius';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
 import type { PromotionWithMarket } from '../../types/promotion';
@@ -15,6 +18,9 @@ export function PromotionCard({
   promotion: PromotionWithMarket;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -29,7 +35,7 @@ export function PromotionCard({
         importantForAccessibility="no-hide-descendants"
       />
       <View style={styles.body}>
-        <Text style={typography.subtitle} numberOfLines={2}>
+        <Text style={[typography.subtitle, styles.title]} numberOfLines={2}>
           {promotion.title}
         </Text>
         <Text style={styles.price}>{formatPrice(promotion.price)}</Text>
@@ -44,19 +50,21 @@ export function PromotionCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    marginBottom: spacing.md,
-    overflow: 'hidden',
-    backgroundColor: colors.surface,
-  },
-  image: { width: '100%', height: 160, backgroundColor: colors.border },
-  body: { padding: spacing.md },
-  price: { color: colors.primary, fontWeight: '700', fontSize: 16, marginTop: spacing.xs },
-  store: { color: colors.textMuted, marginTop: spacing.xs },
-  metaRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.sm },
-  meta: { color: colors.textMuted, fontSize: 13 },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    card: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      marginBottom: spacing.md,
+      overflow: 'hidden',
+      backgroundColor: colors.card,
+    },
+    image: { width: '100%', height: 160, backgroundColor: colors.border },
+    body: { padding: spacing.md },
+    title: { color: colors.text },
+    price: { color: colors.primary, fontWeight: '700', fontSize: 16, marginTop: spacing.xs },
+    store: { color: colors.textMuted, marginTop: spacing.xs },
+    metaRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.sm },
+    meta: { color: colors.textMuted, fontSize: 13 },
+  });

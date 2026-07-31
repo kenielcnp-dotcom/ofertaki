@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAuth } from '../../hooks/useAuth';
 import { AuthHeader } from '../../components/auth/AuthHeader';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
+import { radius } from '../../theme/radius';
 import { spacing } from '../../theme/spacing';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/types';
@@ -12,6 +14,8 @@ import type { AuthStackParamList } from '../../navigation/types';
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { signIn, submitting, error } = useAuth();
@@ -54,12 +58,13 @@ export function LoginScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  form: { padding: spacing.lg, marginTop: spacing.lg },
-  forgotLink: { alignItems: 'flex-end', marginBottom: spacing.md, marginTop: -spacing.xs },
-  errorText: { color: colors.danger, marginBottom: spacing.md },
-  link: { color: colors.primary, fontSize: 13, textDecorationLine: 'underline' },
-  signUpLink: { color: colors.primary, textAlign: 'center', marginTop: spacing.lg },
-  pillButton: { borderRadius: 28, minHeight: 56 },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    form: { padding: spacing.lg, marginTop: spacing.lg },
+    forgotLink: { alignItems: 'flex-end', marginBottom: spacing.md, marginTop: -spacing.xs },
+    errorText: { color: colors.danger, marginBottom: spacing.md },
+    link: { color: colors.primary, fontSize: 13, textDecorationLine: 'underline' },
+    signUpLink: { color: colors.primary, textAlign: 'center', marginTop: spacing.lg },
+    pillButton: { borderRadius: radius.full, minHeight: 56 },
+  });

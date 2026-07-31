@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
+import { radius } from '../../theme/radius';
 import { spacing } from '../../theme/spacing';
 
 type InputProps = TextInputProps & {
@@ -11,6 +13,8 @@ type InputProps = TextInputProps & {
 };
 
 export function Input({ label, error, icon, style, secureTextEntry, ...rest }: InputProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [hidden, setHidden] = useState(!!secureTextEntry);
 
   return (
@@ -41,41 +45,42 @@ export function Input({ label, error, icon, style, secureTextEntry, ...rest }: I
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  field: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.surface,
-  },
-  fieldError: {
-    borderColor: colors.danger,
-  },
-  icon: {
-    marginRight: spacing.sm,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: colors.text,
-    paddingVertical: spacing.sm,
-  },
-  error: {
-    color: colors.danger,
-    fontSize: 12,
-    marginTop: spacing.xs,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      marginBottom: spacing.md,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: spacing.xs,
+    },
+    field: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      minHeight: 48,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      backgroundColor: colors.surface,
+    },
+    fieldError: {
+      borderColor: colors.danger,
+    },
+    icon: {
+      marginRight: spacing.sm,
+    },
+    input: {
+      flex: 1,
+      fontSize: 15,
+      color: colors.text,
+      paddingVertical: spacing.sm,
+    },
+    error: {
+      color: colors.danger,
+      fontSize: 12,
+      marginTop: spacing.xs,
+    },
+  });

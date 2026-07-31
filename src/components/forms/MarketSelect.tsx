@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
+import { radius } from '../../theme/radius';
 import { spacing } from '../../theme/spacing';
 import type { Market } from '../../types/promotion';
 
@@ -11,6 +13,8 @@ type Props = {
 };
 
 export function MarketSelect({ markets, value, onChange }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [open, setOpen] = useState(false);
   const selected = markets.find((market) => market.id === value);
 
@@ -57,32 +61,33 @@ export function MarketSelect({ markets, value, onChange }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { marginBottom: spacing.md },
-  label: { fontSize: 13, fontWeight: '600', color: colors.text, marginBottom: spacing.xs },
-  field: {
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.surface,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  fieldText: { color: colors.text, fontSize: 15 },
-  placeholder: { color: colors.textMuted, fontSize: 15 },
-  chevron: { color: colors.textMuted },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: spacing.lg,
-    maxHeight: '60%',
-  },
-  sheetTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: spacing.md },
-  option: { paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
-  optionText: { fontSize: 15, color: colors.text },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: { marginBottom: spacing.md },
+    label: { fontSize: 13, fontWeight: '600', color: colors.text, marginBottom: spacing.xs },
+    field: {
+      minHeight: 48,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      backgroundColor: colors.surface,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    fieldText: { color: colors.text, fontSize: 15 },
+    placeholder: { color: colors.textMuted, fontSize: 15 },
+    chevron: { color: colors.textMuted },
+    backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+    sheet: {
+      backgroundColor: colors.background,
+      borderTopLeftRadius: radius['2xl'],
+      borderTopRightRadius: radius['2xl'],
+      padding: spacing.lg,
+      maxHeight: '60%',
+    },
+    sheetTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: spacing.md },
+    option: { paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
+    optionText: { fontSize: 15, color: colors.text },
+  });

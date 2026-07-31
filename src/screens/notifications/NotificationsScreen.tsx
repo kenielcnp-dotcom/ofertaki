@@ -1,9 +1,11 @@
+import { useMemo } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ErrorState } from '../../components/common/ErrorState';
 import { Skeleton } from '../../components/common/Skeleton';
 import { useNotifications } from '../../hooks/useNotifications';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
 import type { MainTabScreenProps } from '../../navigation/types';
@@ -24,6 +26,8 @@ function describe(notification: NotificationWithActor) {
 }
 
 export function NotificationsScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { notifications, unreadCount, loading, isError, refetch, isRefetching, markAsRead, markAllAsRead } =
     useNotifications();
 
@@ -70,31 +74,33 @@ export function NotificationsScreen({ navigation }: Props) {
           }}
         >
           {!item.is_read ? <View style={styles.dot} /> : null}
-          <Text style={typography.body}>{describe(item)}</Text>
+          <Text style={[typography.body, styles.bodyText]}>{describe(item)}</Text>
         </Pressable>
       )}
     />
   );
 }
 
-const styles = StyleSheet.create({
-  content: { padding: spacing.lg },
-  skeletonRow: { marginBottom: spacing.sm },
-  markAllRow: { paddingBottom: spacing.md },
-  markAllText: { color: colors.primary, fontWeight: '600' },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  rowUnread: { backgroundColor: colors.surface },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.primary,
-    marginRight: spacing.sm,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    content: { padding: spacing.lg, backgroundColor: colors.background },
+    skeletonRow: { marginBottom: spacing.sm },
+    markAllRow: { paddingBottom: spacing.md },
+    markAllText: { color: colors.primary, fontWeight: '600' },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    rowUnread: { backgroundColor: colors.surface },
+    bodyText: { color: colors.text },
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.primary,
+      marginRight: spacing.sm,
+    },
+  });

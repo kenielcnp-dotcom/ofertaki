@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { createBottomTabNavigator, type BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { FeedScreen } from '../screens/feed/FeedScreen';
@@ -5,12 +6,14 @@ import { ListaScreen } from '../screens/lista/ListaScreen';
 import { CreatePromotionScreen } from '../screens/promotion/CreatePromotionScreen';
 import { NotificationsScreen } from '../screens/notifications/NotificationsScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
+import type { ThemeColors } from '../theme/colors';
 import type { MainTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-function TabLabel({ label, focused }: { label: string; focused: boolean }) {
+function TabLabel({ label, focused, colors }: { label: string; focused: boolean; colors: ThemeColors }) {
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Text style={[styles.label, focused && styles.labelFocused]} numberOfLines={1}>
       {label}
@@ -20,6 +23,8 @@ function TabLabel({ label, focused }: { label: string; focused: boolean }) {
 
 // Botão central em destaque, aguardando o redesenho visual do time de design.
 function PublishTabButton({ children, onPress, accessibilityState, accessibilityLabel }: BottomTabBarButtonProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Pressable
       accessibilityRole="button"
@@ -34,6 +39,9 @@ function PublishTabButton({ children, onPress, accessibilityState, accessibility
 }
 
 export function MainTabs() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <Tab.Navigator screenOptions={{ tabBarActiveTintColor: colors.primary, headerShown: false }}>
       <Tab.Screen
@@ -42,7 +50,7 @@ export function MainTabs() {
         options={{
           headerShown: true,
           title: 'Ofertaki',
-          tabBarLabel: ({ focused }) => <TabLabel label="Home" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label="Home" focused={focused} colors={colors} />,
         }}
       />
       <Tab.Screen
@@ -51,7 +59,7 @@ export function MainTabs() {
         options={{
           headerShown: true,
           title: 'Lista de compras',
-          tabBarLabel: ({ focused }) => <TabLabel label="Lista" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label="Lista" focused={focused} colors={colors} />,
         }}
       />
       <Tab.Screen
@@ -60,7 +68,7 @@ export function MainTabs() {
         options={{
           headerShown: true,
           title: 'Publicar promoção',
-          tabBarLabel: ({ focused }) => <TabLabel label="Publicar" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label="Publicar" focused={focused} colors={colors} />,
           tabBarIcon: () => <View style={styles.publishIcon} />,
           tabBarButton: (props) => <PublishTabButton {...props} />,
         }}
@@ -71,7 +79,7 @@ export function MainTabs() {
         options={{
           headerShown: true,
           title: 'Notificações',
-          tabBarLabel: ({ focused }) => <TabLabel label="Notificações" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label="Notificações" focused={focused} colors={colors} />,
         }}
       />
       <Tab.Screen
@@ -80,25 +88,26 @@ export function MainTabs() {
         options={{
           headerShown: true,
           title: 'Perfil',
-          tabBarLabel: ({ focused }) => <TabLabel label="Perfil" focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel label="Perfil" focused={focused} colors={colors} />,
         }}
       />
     </Tab.Navigator>
   );
 }
 
-const styles = StyleSheet.create({
-  label: { fontSize: 11, color: colors.textMuted },
-  labelFocused: { color: colors.primary, fontWeight: '600' },
-  publishButtonWrapper: {
-    top: -12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  publishIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.primary,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    label: { fontSize: 11, color: colors.textMuted },
+    labelFocused: { color: colors.primary, fontWeight: '600' },
+    publishButtonWrapper: {
+      top: -12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    publishIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.secondary,
+    },
+  });

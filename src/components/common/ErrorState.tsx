@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Button } from './Button';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 
 type ErrorStateProps = {
@@ -9,6 +11,9 @@ type ErrorStateProps = {
 };
 
 export function ErrorState({ message = 'Não foi possível carregar. Tente novamente.', onRetry }: ErrorStateProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.container}>
       <Text style={styles.text}>{message}</Text>
@@ -19,8 +24,9 @@ export function ErrorState({ message = 'Não foi possível carregar. Tente novam
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
-  text: { color: colors.textMuted, textAlign: 'center', marginBottom: spacing.md },
-  button: { minWidth: 180 },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
+    text: { color: colors.textMuted, textAlign: 'center', marginBottom: spacing.md },
+    button: { minWidth: 180 },
+  });

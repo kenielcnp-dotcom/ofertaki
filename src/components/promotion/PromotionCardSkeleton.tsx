@@ -1,9 +1,15 @@
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Skeleton } from '../common/Skeleton';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
+import { radius } from '../../theme/radius';
 import { spacing } from '../../theme/spacing';
 
 export function PromotionCardSkeleton() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.card}>
       <Skeleton height={160} borderRadius={0} />
@@ -16,15 +22,16 @@ export function PromotionCardSkeleton() {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    marginBottom: spacing.md,
-    overflow: 'hidden',
-    backgroundColor: colors.surface,
-  },
-  body: { padding: spacing.md },
-  line: { marginTop: spacing.xs },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    card: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      marginBottom: spacing.md,
+      overflow: 'hidden',
+      backgroundColor: colors.card,
+    },
+    body: { padding: spacing.md },
+    line: { marginTop: spacing.xs },
+  });

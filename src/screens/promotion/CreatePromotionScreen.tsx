@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
@@ -6,7 +6,9 @@ import { MarketSelect } from '../../components/forms/MarketSelect';
 import { useMarkets } from '../../hooks/useMarkets';
 import { useCreatePromotion } from '../../hooks/useCreatePromotion';
 import { useImageUpload } from '../../hooks/useImageUpload';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
+import { radius } from '../../theme/radius';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
 import type { MainTabScreenProps } from '../../navigation/types';
@@ -14,6 +16,8 @@ import type { MainTabScreenProps } from '../../navigation/types';
 type Props = MainTabScreenProps<'Publicar'>;
 
 export function CreatePromotionScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { markets } = useMarkets();
   const { uri: imageUri, picking, pickImage, reset: resetImage } = useImageUpload();
   const { submit, submitting, error } = useCreatePromotion();
@@ -44,7 +48,7 @@ export function CreatePromotionScreen({ navigation }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={typography.title}>Publicar promoção</Text>
+      <Text style={[typography.title, styles.title]}>Publicar promoção</Text>
 
       <View style={styles.imageSection}>
         {imageUri ? (
@@ -86,26 +90,28 @@ export function CreatePromotionScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { padding: spacing.lg },
-  imageSection: { marginBottom: spacing.lg, alignItems: 'center' },
-  preview: {
-    width: '100%',
-    height: 200,
-    borderRadius: 12,
-    marginBottom: spacing.md,
-    backgroundColor: colors.surface,
-  },
-  placeholder: {
-    width: '100%',
-    height: 200,
-    borderRadius: 12,
-    marginBottom: spacing.md,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholderText: { color: colors.textMuted },
-  errorText: { color: colors.danger, marginBottom: spacing.md },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: spacing.lg },
+    title: { color: colors.text },
+    imageSection: { marginBottom: spacing.lg, alignItems: 'center' },
+    preview: {
+      width: '100%',
+      height: 200,
+      borderRadius: radius.md,
+      marginBottom: spacing.md,
+      backgroundColor: colors.surface,
+    },
+    placeholder: {
+      width: '100%',
+      height: 200,
+      borderRadius: radius.md,
+      marginBottom: spacing.md,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    placeholderText: { color: colors.textMuted },
+    errorText: { color: colors.danger, marginBottom: spacing.md },
+  });

@@ -1,14 +1,18 @@
+import { useMemo } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Skeleton } from '../../components/common/Skeleton';
 import { RankingItem } from '../../components/ranking/RankingItem';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { RANKING_LIMIT, useMonthlyRanking } from '../../hooks/useMonthlyRanking';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
 
 export function RankingScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { session } = useAuthContext();
   const userId = session?.user.id;
   const { data, isLoading, isError, refetch, isRefetching } = useMonthlyRanking();
@@ -43,7 +47,7 @@ export function RankingScreen() {
         keyExtractor={(item) => item.user_id}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => <RankingItem row={item} isCurrentUser={item.user_id === userId} />}
-        ListHeaderComponent={<Text style={typography.subtitle}>Melhores do mês</Text>}
+        ListHeaderComponent={<Text style={[typography.subtitle, styles.headerTitle]}>Melhores do mês</Text>}
         ListFooterComponent={
           userOutsideTop && userRow ? (
             <View style={styles.footer}>
@@ -61,26 +65,28 @@ export function RankingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  listContent: { padding: spacing.lg, gap: spacing.xs },
-  skeletonRow: { marginBottom: spacing.sm },
-  footer: {
-    marginTop: spacing.lg,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    gap: spacing.sm,
-  },
-  footerTitle: {
-    color: colors.textMuted,
-    fontWeight: '600',
-    fontSize: 13,
-    marginLeft: spacing.md,
-  },
-  footerEmpty: {
-    marginTop: spacing.lg,
-    color: colors.textMuted,
-    textAlign: 'center',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    listContent: { padding: spacing.lg, gap: spacing.xs },
+    skeletonRow: { marginBottom: spacing.sm },
+    headerTitle: { color: colors.text },
+    footer: {
+      marginTop: spacing.lg,
+      paddingTop: spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      gap: spacing.sm,
+    },
+    footerTitle: {
+      color: colors.textMuted,
+      fontWeight: '600',
+      fontSize: 13,
+      marginLeft: spacing.md,
+    },
+    footerEmpty: {
+      marginTop: spacing.lg,
+      color: colors.textMuted,
+      textAlign: 'center',
+    },
+  });

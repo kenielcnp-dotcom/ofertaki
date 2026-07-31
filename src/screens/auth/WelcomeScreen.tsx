@@ -1,8 +1,11 @@
+import { useMemo } from 'react';
 import { Image, ImageBackground, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../components/common/Button';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
+import { radius } from '../../theme/radius';
 import { spacing } from '../../theme/spacing';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/types';
@@ -13,6 +16,8 @@ const BACKGROUND_IMAGE = require('../../../assets/welcome-bg.jpg');
 const LOGO_IMAGE = require('../../../assets/logo.png');
 
 export function WelcomeScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
 
   return (
@@ -44,16 +49,17 @@ export function WelcomeScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  background: { flex: 1 },
-  gradient: { flex: 1, justifyContent: 'flex-end' },
-  content: { paddingHorizontal: spacing.lg },
-  wordmarkRow: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.xl,
-  },
-  logo: { width: 180, height: 80 },
-  buttons: { gap: spacing.md },
-  pillButton: { borderRadius: 28, minHeight: 56 },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    background: { flex: 1 },
+    gradient: { flex: 1, justifyContent: 'flex-end' },
+    content: { paddingHorizontal: spacing.lg },
+    wordmarkRow: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: spacing.xl,
+    },
+    logo: { width: 180, height: 80 },
+    buttons: { gap: spacing.md },
+    pillButton: { borderRadius: radius.full, minHeight: 56 },
+  });

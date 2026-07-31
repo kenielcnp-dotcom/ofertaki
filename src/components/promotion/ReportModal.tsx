@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
+import { radius } from '../../theme/radius';
 import { spacing } from '../../theme/spacing';
 import type { ReportReason } from '../../types/promotion';
 
@@ -23,6 +25,8 @@ type Props = {
 };
 
 export function ReportModal({ visible, onClose, onSubmit, submitting, error }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [details, setDetails] = useState('');
 
@@ -67,25 +71,26 @@ export function ReportModal({ visible, onClose, onSubmit, submitting, error }: P
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: spacing.lg,
-  },
-  title: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: spacing.md },
-  option: { flexDirection: 'row', alignItems: 'center', minHeight: 44, paddingVertical: spacing.sm },
-  radio: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    borderColor: colors.border,
-    marginRight: spacing.sm,
-  },
-  radioSelected: { borderColor: colors.primary, backgroundColor: colors.primary },
-  optionText: { color: colors.text, fontSize: 15 },
-  errorText: { color: colors.danger, marginTop: spacing.sm },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+    sheet: {
+      backgroundColor: colors.background,
+      borderTopLeftRadius: radius['2xl'],
+      borderTopRightRadius: radius['2xl'],
+      padding: spacing.lg,
+    },
+    title: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: spacing.md },
+    option: { flexDirection: 'row', alignItems: 'center', minHeight: 44, paddingVertical: spacing.sm },
+    radio: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      borderWidth: 2,
+      borderColor: colors.border,
+      marginRight: spacing.sm,
+    },
+    radioSelected: { borderColor: colors.primary, backgroundColor: colors.primary },
+    optionText: { color: colors.text, fontSize: 15 },
+    errorText: { color: colors.danger, marginTop: spacing.sm },
+  });

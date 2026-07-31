@@ -1,5 +1,8 @@
+import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, StyleProp, Text, ViewStyle } from 'react-native';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../theme/ThemeContext';
+import type { ThemeColors } from '../../theme/colors';
+import { radius } from '../../theme/radius';
 import { spacing } from '../../theme/spacing';
 
 type ButtonProps = {
@@ -12,7 +15,10 @@ type ButtonProps = {
 };
 
 export function Button({ label, onPress, loading, disabled, variant = 'primary', style }: ButtonProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const isPrimary = variant === 'primary';
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -35,33 +41,34 @@ export function Button({ label, onPress, loading, disabled, variant = 'primary',
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    minHeight: 48,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-  },
-  primary: {
-    backgroundColor: colors.primary,
-  },
-  secondary: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  disabled: {
-    opacity: 0.6,
-  },
-  primaryText: {
-    color: colors.primaryText,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  secondaryText: {
-    color: colors.text,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    base: {
+      minHeight: 48,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: spacing.lg,
+    },
+    primary: {
+      backgroundColor: colors.primary,
+    },
+    secondary: {
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    disabled: {
+      opacity: 0.6,
+    },
+    primaryText: {
+      color: colors.primaryText,
+      fontWeight: '600',
+      fontSize: 16,
+    },
+    secondaryText: {
+      color: colors.text,
+      fontWeight: '600',
+      fontSize: 16,
+    },
+  });
