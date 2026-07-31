@@ -212,6 +212,58 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          promotion_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          promotion_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          promotion_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       points_ledger: {
         Row: {
           created_at: string
@@ -297,6 +349,7 @@ export type Database = {
           market_id: string
           price: number
           reports_count: number
+          search_vector: unknown
           status: string
           title: string
           updated_at: string
@@ -315,6 +368,7 @@ export type Database = {
           market_id: string
           price: number
           reports_count?: number
+          search_vector?: unknown
           status?: string
           title: string
           updated_at?: string
@@ -333,6 +387,7 @@ export type Database = {
           market_id?: string
           price?: number
           reports_count?: number
+          search_vector?: unknown
           status?: string
           title?: string
           updated_at?: string
@@ -362,6 +417,48 @@ export type Database = {
           },
         ]
       }
+      reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          promotion_id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          promotion_id: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          promotion_id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -372,18 +469,19 @@ export type Database = {
         Returns: undefined
       }
       get_monthly_ranking: {
-        Args: {
-          p_limit?: number
-          p_user_id?: string
-        }
+        Args: { p_limit?: number; p_user_id?: string }
         Returns: {
-          avatar_url: string | null
-          display_name: string | null
+          avatar_url: string
+          display_name: string
           rank: number
           total_points: number
           user_id: string
           username: string
         }[]
+      }
+      notify_promotion_author: {
+        Args: { p_actor_id: string; p_promotion_id: string; p_type: string }
+        Returns: undefined
       }
     }
     Enums: {

@@ -15,7 +15,7 @@ export const promotionsService = {
       .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
 
     if (search) {
-      query = query.ilike('title', `%${search}%`);
+      query = query.textSearch('search_vector', search, { type: 'websearch', config: 'portuguese' });
     }
 
     const result = await query;

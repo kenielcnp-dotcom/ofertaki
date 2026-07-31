@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { ActivityIndicator, FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { Fragment, useState } from 'react';
+import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
+import { ReportModal } from '../../components/promotion/ReportModal';
 import { usePromotionDetail } from '../../hooks/usePromotionDetail';
 import { useListaCompras } from '../../hooks/useListaCompras';
+import { useReportPromotion } from '../../hooks/useReportPromotion';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
@@ -22,12 +24,16 @@ export function PromotionDetailScreen({ route }: Props) {
     usePromotionDetail(promotionId);
   const { addItem } = useListaCompras();
   const [commentBody, setCommentBody] = useState('');
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+  const { submit: submitReport, submitting: reportSubmitting, error: reportError } =
+    useReportPromotion(promotionId);
 
   if (loading || !promotion) {
     return <ActivityIndicator style={styles.loading} color={colors.primary} />;
   }
 
   return (
+    <Fragment>
     <FlatList
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -74,6 +80,12 @@ export function PromotionDetailScreen({ route }: Props) {
             onPress={() => addItem.mutate(promotion.id)}
           />
 
+          {!isAuthor ? (
+            <Pressable onPress={() => setReportModalVisible(true)} style={styles.reportLink}>
+              <Text style={styles.reportLinkText}>Denunciar promoção</Text>
+            </Pressable>
+          ) : null}
+
           <Text style={[typography.subtitle, styles.commentsTitle]}>Comentários</Text>
         </View>
       }
@@ -98,6 +110,17 @@ export function PromotionDetailScreen({ route }: Props) {
         </View>
       }
     />
+    <ReportModal
+      visible={reportModalVisible}
+      onClose={() => setReportModalVisible(false)}
+      submitting={reportSubmitting}
+      error={reportError}
+      onSubmit={async (reason, details) => {
+        const ok = await submitReport(reason, details || undefined);
+        if (ok) setReportModalVisible(false);
+      }}
+    />
+    </Fragment>
   );
 }
 
@@ -115,4 +138,6 @@ const styles = StyleSheet.create({
   commentBody: { color: colors.text },
   empty: { color: colors.textMuted, marginBottom: spacing.md },
   commentForm: { marginTop: spacing.md },
+  reportLink: { marginTop: spacing.md, alignItems: 'center' },
+  reportLinkText: { color: colors.danger, fontSize: 13 },
 });
