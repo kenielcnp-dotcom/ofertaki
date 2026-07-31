@@ -5,7 +5,7 @@ export const rankingService = {
   async getMonthlyRanking(limit = 50, userId?: string) {
     const { data, error } = await supabase.rpc('get_monthly_ranking', {
       p_limit: limit,
-      p_user_id: userId ?? null,
+      p_user_id: userId,
     });
     return { data: data as MonthlyRankingRow[] | null, error };
   },
