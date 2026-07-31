@@ -55,10 +55,26 @@ _(a Fase 2 nunca tinha sido feita antes; foi feita junto com a 3 porque uma depe
 - **Fora de escopo por decisão consciente:** filtro por categoria na Home não foi construído — hoje toda promoção usa a categoria "Mercado" fixa, então o filtro não teria efeito prático ainda. Fica pra quando outras categorias entrarem.
 - Estado técnico: `npx tsc --noEmit` limpo, todas as 12 migrations sincronizadas com o Supabase remoto, commitado e enviado pro GitHub.
 
+### Segurança — correções do Database Linter do Supabase
+
+- Achado real (não só cosmético): `adjust_promotion_counter` era `SECURITY DEFINER`, chamável direto via `/rest/v1/rpc` por `anon`/`authenticated`, e aceitava o nome da coluna como texto livre sem validar — dava pra reescrever qualquer coluna de `promotions` (inclusive `price`) por fora da RLS. Corrigido com whitelist de coluna + `REVOKE EXECUTE` (migration `0013`).
+- `REVOKE EXECUTE` em todas as outras funções `SECURITY DEFINER` de uso interno (trigger-only); só `get_monthly_ranking` continua pública de propósito.
+- `set_updated_at` ganhou `search_path` fixo; policy de listagem pública do bucket `promotion-images` removida (URL direta de imagem não depende de RLS).
+- **Pendência que não dá pra resolver por código:** "Leaked password protection" (checagem HaveIBeenPwned) exige plano Pro do Supabase — API retornou 402 no free tier atual.
+
+### Fase 6 (parte 1) — erro/retry, skeleton, acessibilidade, revisão de RLS
+
+- `FeedScreen`, `PromotionDetailScreen`, `ListaScreen`, `NotificationsScreen` agora mostram estado de erro com botão "Tentar novamente" (`ErrorState`) em vez de ficar carregando pra sempre ou em branco quando a query falha.
+- Loading trocou `ActivityIndicator` solto por skeleton loaders (`Skeleton`, `PromotionCardSkeleton`) em Feed, Detalhe, Lista, Notificações e Ranking.
+- Acessibilidade: fotos de promoção corretamente ocultas/rotuladas pra leitor de tela; alvos de toque pequenos (checkbox da Lista, motivos de denúncia) ganharam `hitSlop`/`minHeight` pra chegar perto de 44px.
+- Revisão de RLS nas 14 migrations achou 1 gap real: `promotions.status` era editável pelo próprio autor via UPDATE — dava pra reverter manualmente uma remoção automática por denúncia. Corrigido com `REVOKE UPDATE (status)` (migration `0014`), sem mudar nenhum comportamento hoje (o client nunca escrevia esse campo).
+- **Fora desta rodada, por decisão do usuário:** testes automatizados (fica pra uma rodada própria depois) e correção de contraste de cor (pendência anotada pro time de design).
+
 ## O que falta
 
-- **Fase 6 — Polish:** acessibilidade, skeleton loaders, tratamento de erro/offline, testes automatizados, revisão final de RLS.
-- **Integração com o time de design** — combinada para "mais tarde" (ainda não veio); telas atuais usam estilo funcional simples (Button/Input/EmptyState), sem redesenho visual.
+- **Fase 6 (parte 2):** testes automatizados (Jest/RNTL, e possivelmente Detox/Maestro depois).
+- **Integração com o time de design** — combinada para "mais tarde" (ainda não veio); telas atuais usam estilo funcional simples (Button/Input/EmptyState), sem redesenho visual. Inclui rever o contraste de `colors.primary` como cor de texto.
 - Filtro por categoria na Home (adiado — ver acima).
+- Habilitar "Leaked password protection" no Supabase quando o projeto for pra plano Pro.
 
 _Plano de referência completo em:_ `C:\Users\kenie\.claude\plans\me-mostre-como-vc-staged-lightning.md`
