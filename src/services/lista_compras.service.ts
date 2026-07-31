@@ -2,14 +2,16 @@ import { supabase } from './supabase/client';
 import type { ListaCompraItem, Promotion } from '../types/promotion';
 
 export type ListaCompraWithPromotion = ListaCompraItem & {
-  promotions: Pick<Promotion, 'id' | 'title' | 'image_url' | 'price' | 'store_name'> | null;
+  promotions:
+    | (Pick<Promotion, 'id' | 'title' | 'image_url' | 'price'> & { mercados: { name: string } | null })
+    | null;
 };
 
 export const listaComprasService = {
   async list(userId: string) {
     const result = await supabase
       .from('lista_compras')
-      .select('*, promotions (id, title, image_url, price, store_name)')
+      .select('*, promotions (id, title, image_url, price, mercados (name))')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     return { ...result, data: result.data as ListaCompraWithPromotion[] | null };

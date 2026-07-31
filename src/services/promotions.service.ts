@@ -1,13 +1,15 @@
 import { supabase } from './supabase/client';
 import type { TablesInsert } from '../types/database.types';
+import type { PromotionWithMarket } from '../types/promotion';
 
 const PAGE_SIZE = 20;
+const SELECT_WITH_MARKET = '*, mercados (name)';
 
 export const promotionsService = {
   async list({ page = 0, search }: { page?: number; search?: string } = {}) {
     let query = supabase
       .from('promotions')
-      .select('*')
+      .select(SELECT_WITH_MARKET)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
       .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
@@ -16,11 +18,13 @@ export const promotionsService = {
       query = query.ilike('title', `%${search}%`);
     }
 
-    return query;
+    const result = await query;
+    return { ...result, data: result.data as PromotionWithMarket[] | null };
   },
 
   async getById(id: string) {
-    return supabase.from('promotions').select('*').eq('id', id).single();
+    const result = await supabase.from('promotions').select(SELECT_WITH_MARKET).eq('id', id).single();
+    return { ...result, data: result.data as PromotionWithMarket | null };
   },
 
   async create(input: TablesInsert<'promotions'>) {

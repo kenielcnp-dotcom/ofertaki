@@ -2,13 +2,19 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
-import type { Promotion } from '../../types/promotion';
+import type { PromotionWithMarket } from '../../types/promotion';
 
 function formatPrice(price: number) {
   return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-export function PromotionCard({ promotion, onPress }: { promotion: Promotion; onPress: () => void }) {
+export function PromotionCard({
+  promotion,
+  onPress,
+}: {
+  promotion: PromotionWithMarket;
+  onPress: () => void;
+}) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -22,7 +28,7 @@ export function PromotionCard({ promotion, onPress }: { promotion: Promotion; on
           {promotion.title}
         </Text>
         <Text style={styles.price}>{formatPrice(promotion.price)}</Text>
-        {promotion.store_name ? <Text style={styles.store}>{promotion.store_name}</Text> : null}
+        {promotion.mercados?.name ? <Text style={styles.store}>{promotion.mercados.name}</Text> : null}
         <View style={styles.metaRow}>
           <Text style={styles.meta}>👍 {promotion.likes_count}</Text>
           <Text style={styles.meta}>✅ {promotion.confirmations_count}</Text>

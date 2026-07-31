@@ -188,6 +188,27 @@ export type Database = {
           },
         ]
       }
+      mercados: {
+        Row: {
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+        }
+        Update: {
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -238,10 +259,10 @@ export type Database = {
           id: string
           image_url: string
           likes_count: number
+          market_id: string
           price: number
           reports_count: number
           status: string
-          store_name: string | null
           title: string
           updated_at: string
           user_id: string
@@ -256,10 +277,10 @@ export type Database = {
           id?: string
           image_url: string
           likes_count?: number
+          market_id: string
           price: number
           reports_count?: number
           status?: string
-          store_name?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -274,10 +295,10 @@ export type Database = {
           id?: string
           image_url?: string
           likes_count?: number
+          market_id?: string
           price?: number
           reports_count?: number
           status?: string
-          store_name?: string | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -288,6 +309,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotions_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "mercados"
             referencedColumns: ["id"]
           },
           {

@@ -22,8 +22,7 @@ export const createPromotionSchema = z.object({
   title: z.string().min(3, 'Título deve ter ao menos 3 caracteres').max(100),
   description: z.string().max(500).optional(),
   price: z.coerce.number().positive('Informe um preço válido'),
-  categoryId: z.string().uuid('Selecione uma categoria'),
-  storeName: z.string().max(100).optional(),
+  marketId: z.string().uuid('Selecione o mercado'),
   imageUri: z.string().min(1, 'A foto da promoção é obrigatória'),
 });
 

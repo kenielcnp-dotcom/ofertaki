@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
-import { CategorySelect } from '../../components/forms/CategorySelect';
-import { useCategories } from '../../hooks/useCategories';
+import { MarketSelect } from '../../components/forms/MarketSelect';
+import { useMarkets } from '../../hooks/useMarkets';
 import { useCreatePromotion } from '../../hooks/useCreatePromotion';
 import { useImageUpload } from '../../hooks/useImageUpload';
 import { colors } from '../../theme/colors';
@@ -14,23 +14,21 @@ import type { MainTabScreenProps } from '../../navigation/types';
 type Props = MainTabScreenProps<'Publicar'>;
 
 export function CreatePromotionScreen({ navigation }: Props) {
-  const { categories } = useCategories();
+  const { markets } = useMarkets();
   const { uri: imageUri, picking, pickImage, reset: resetImage } = useImageUpload();
   const { submit, submitting, error } = useCreatePromotion();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [storeName, setStoreName] = useState('');
-  const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [marketId, setMarketId] = useState<string | null>(null);
 
   async function handleSubmit() {
     const ok = await submit({
       title,
       description: description || undefined,
       price: Number(price.replace(',', '.')),
-      storeName: storeName || undefined,
-      categoryId: categoryId ?? '',
+      marketId: marketId ?? '',
       imageUri: imageUri ?? '',
     });
 
@@ -38,8 +36,7 @@ export function CreatePromotionScreen({ navigation }: Props) {
       setTitle('');
       setDescription('');
       setPrice('');
-      setStoreName('');
-      setCategoryId(null);
+      setMarketId(null);
       resetImage();
       navigation.navigate('Home');
     }
@@ -80,14 +77,7 @@ export function CreatePromotionScreen({ navigation }: Props) {
         placeholder="Ex: 19,90"
         keyboardType="decimal-pad"
       />
-      <Input
-        label="Loja"
-        value={storeName}
-        onChangeText={setStoreName}
-        placeholder="Ex: Supermercado Central"
-      />
-
-      <CategorySelect categories={categories} value={categoryId} onChange={setCategoryId} />
+      <MarketSelect markets={markets} value={marketId} onChange={setMarketId} />
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 

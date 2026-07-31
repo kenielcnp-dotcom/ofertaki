@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { promotionsService } from '../services/promotions.service';
 import { storageService } from '../services/storage.service';
+import { categoriesService } from '../services/categories.service';
 import { createPromotionSchema, type CreatePromotionInput } from '../utils/validation';
 import { useAuthContext } from '../contexts/AuthContext';
+
+const MVP_CATEGORY_SLUG = 'mercado';
 
 export function useCreatePromotion() {
   const { session } = useAuthContext();
@@ -25,6 +28,13 @@ export function useCreatePromotion() {
     setSubmitting(true);
     setError(null);
 
+    const { data: category, error: categoryError } = await categoriesService.getBySlug(MVP_CATEGORY_SLUG);
+    if (categoryError || !category) {
+      setSubmitting(false);
+      setError('Categoria padrão não encontrada. Tente novamente.');
+      return false;
+    }
+
     const { data: imageUrl, error: uploadError } = await storageService.uploadPromotionImage(
       session.user.id,
       parsed.data.imageUri
@@ -37,11 +47,11 @@ export function useCreatePromotion() {
 
     const { error: createError } = await promotionsService.create({
       user_id: session.user.id,
-      category_id: parsed.data.categoryId,
+      category_id: category.id,
+      market_id: parsed.data.marketId,
       title: parsed.data.title,
       description: parsed.data.description,
       price: parsed.data.price,
-      store_name: parsed.data.storeName,
       image_url: imageUrl,
     });
 

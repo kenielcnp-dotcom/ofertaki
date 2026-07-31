@@ -43,7 +43,7 @@ export function PromotionDetailScreen({ route }: Props) {
           <Image source={{ uri: promotion.image_url }} style={styles.image} />
           <Text style={typography.title}>{promotion.title}</Text>
           <Text style={styles.price}>{formatPrice(promotion.price)}</Text>
-          {promotion.store_name ? <Text style={styles.store}>{promotion.store_name}</Text> : null}
+          {promotion.mercados?.name ? <Text style={styles.store}>{promotion.mercados.name}</Text> : null}
           {promotion.description ? <Text style={styles.description}>{promotion.description}</Text> : null}
 
           <View style={styles.actionsRow}>
