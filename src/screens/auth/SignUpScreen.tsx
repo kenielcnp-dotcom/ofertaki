@@ -18,11 +18,14 @@ export function SignUpScreen({ navigation }: Props) {
   const { signUp, submitting, error } = useAuth();
 
   async function handleSubmit() {
-    const ok = await signUp({ username, email, password });
-    if (ok) {
+    const result = await signUp({ username, email, password });
+    if (!result) return;
+    if (!result.session) {
       Alert.alert('Quase lá', 'Confirme seu e-mail para ativar a conta.');
       navigation.navigate('Login');
     }
+    // If a session came back, email confirmation is disabled for this project
+    // and AuthContext's onAuthStateChange already swaps to MainTabs.
   }
 
   return (

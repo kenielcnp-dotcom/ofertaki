@@ -1,15 +1,17 @@
 {
   "expo": {
-    "name": "ofertaki-app",
+    "name": "Ofertaki",
     "slug": "ofertaki-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ofertaki.app"
     },
     "android": {
+      "package": "com.ofertaki.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -22,7 +24,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Ofertaki usa suas fotos para anexar imagens às promoções que você publicar.",
+          "cameraPermission": "O Ofertaki usa a câmera para você fotografar promoções na hora de publicar."
+        }
+      ]
     ]
   }
 }

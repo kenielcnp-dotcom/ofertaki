@@ -14,13 +14,13 @@ export function useAuth() {
     }
     setSubmitting(true);
     setError(null);
-    const { error: signUpError } = await authService.signUp(parsed.data);
+    const { data, error: signUpError } = await authService.signUp(parsed.data);
     setSubmitting(false);
     if (signUpError) {
       setError(signUpError.message);
-      return false;
+      return null;
     }
-    return true;
+    return { session: data.session };
   }
 
   async function signIn(input: SignInInput) {
