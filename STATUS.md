@@ -1,4 +1,4 @@
-# Ofertaki — Status do projeto (última atualização: 2026-07-30)
+# Ofertaki — Status do projeto (última atualização: 2026-07-31)
 
 ## Stack
 
@@ -70,11 +70,36 @@ _(a Fase 2 nunca tinha sido feita antes; foi feita junto com a 3 porque uma depe
 - Revisão de RLS nas 14 migrations achou 1 gap real: `promotions.status` era editável pelo próprio autor via UPDATE — dava pra reverter manualmente uma remoção automática por denúncia. Corrigido com `REVOKE UPDATE (status)` (migration `0014`), sem mudar nenhum comportamento hoje (o client nunca escrevia esse campo).
 - **Fora desta rodada, por decisão do usuário:** testes automatizados (fica pra uma rodada própria depois) e correção de contraste de cor (pendência anotada pro time de design).
 
+### Rebrand + telas de Login/Cadastro/Welcome (branch `test.design-local`, não mergeada na `main`)
+
+- Entrega real do time de design aplicada: `WelcomeScreen` nova (foto de fundo real + logo), `AuthHeader` com header curvo verde, `LoginScreen`/`SignUpScreen` redesenhadas (inputs com ícone, toggle de senha, botões pill), rebrand de cor (`colors.primary` verde `#1A5331`, `colors.secondary` laranja `#E77F43`) aplicado ao app inteiro.
+- Está **só na branch `test.design-local`** (histórico local resumido a 1 commit, mas já espelhada em `origin/test.design-local`) — **não foi trazida para a `main`**, decisão consciente por enquanto.
+- Detalhe completo nas Seções 15/16 do plano de referência.
+
+### 2026-07-31 — Diagnóstico e correções para deixar pronto pro deploy
+
+Pedido do usuário: revisão geral de ponta a ponta + deixar pronto pro deploy. Achados e correções:
+
+- **App não iniciava**: não existia `.env` nem `.env.example` neste checkout — `src/config/env.ts` derrubava o app assim que carregava (`Variável de ambiente ausente`). Recriado `.env` (local, fora do Git) com as credenciais reais informadas pelo usuário e `.env.example` (novo, documentando as duas vars) commitado.
+- `expo-doctor` acusou `expo@54.0.8` desalinhado do SDK instalado; corrigido com `expo install --fix` → `~54.0.36`.
+- Testado end-to-end num browser real (Playwright headless contra `expo start --web`): cadastro → trigger `handle_new_user` cria o perfil → login → logout → login de novo, tudo contra o Supabase remoto de verdade, zero erro de console. Feed, Lista, Alertas, Publicar e Perfil renderizam sem erro.
+- **Bug real encontrado no Ranking**: `get_monthly_ranking` declarava `total_points integer`, mas `sum(pl.points)` retorna `bigint` — toda chamada da RPC dava 400 (`structure of query does not match function result type`) e a `RankingScreen` ficava presa no skeleton pra sempre. Corrigido na migration `0015_fix_ranking_return_type.sql` — **ainda não aplicada no banco remoto** (falta acesso à Supabase CLI/token nesta sessão; ver pendência abaixo).
+- `SignUpScreen`: no cadastro, quando o projeto Supabase já devolve sessão ativa (confirmação de e-mail desligada, é o caso hoje), o app mostrava o alerta "confirme seu e-mail" e tentava navegar pra `Login` mesmo já tendo trocado pra `MainTabs` — gerava warning de navegação e mensagem contraditória pro usuário. Agora só mostra esse alerta/navegação quando realmente não veio sessão.
+- `app.json`: nome de exibição virou "Ofertaki" (antes "ofertaki-app"), `ios.bundleIdentifier`/`android.package` = `com.ofertaki.app` (placeholder — **confirmar/trocar antes de submeter às lojas** se já existir um app registrado com outro id), plugin `expo-image-picker` com textos de permissão (obrigatório pra build de loja, senão o app crasha ao pedir permissão de câmera/fototeca).
+- `eas.json`: criado do zero (não existia) com perfis `development`/`preview`/`production`.
+- Tudo commitado e enviado para `origin/test.design-local`.
+
 ## O que falta
 
+- **Aplicar a migration `0015` no Supabase remoto** — precisa de Supabase access token (ou o usuário rodar o SQL manualmente no SQL Editor). Sem isso o Ranking continua quebrado em produção mesmo com o código já corrigido localmente.
+- **Confirmar sincronia completa das 15 migrations com o banco remoto** (`supabase db push` / `db diff`) — não verificado nesta rodada por falta de token.
+- **Antes de rodar `eas build` de verdade**: criar projeto EAS (`eas login` + `eas build:configure`, gera `extra.eas.projectId`) e configurar `EXPO_PUBLIC_SUPABASE_URL`/`EXPO_PUBLIC_SUPABASE_ANON_KEY` como env vars do EAS (`eas env:create`) — o `.env` local é gitignored e não vai pro build na nuvem sozinho.
+- **Confirmar `com.ofertaki.app`** como bundle id/package definitivo (ou trocar) antes de submeter às lojas — contas Apple Developer/Google Play e ficha da loja (ícones, screenshots, política de privacidade) ainda não fazem parte de nada automatizável por aqui.
 - **Fase 6 (parte 2):** testes automatizados (Jest/RNTL, e possivelmente Detox/Maestro depois).
-- **Integração com o time de design** — combinada para "mais tarde" (ainda não veio); telas atuais usam estilo funcional simples (Button/Input/EmptyState), sem redesenho visual. Inclui rever o contraste de `colors.primary` como cor de texto.
+- Reset de senha não tem deep link de volta pro app (usuário reseta no navegador e loga de novo manualmente) — funcional, mas não é o fluxo ideal; ficaria pra quando scheme/deep linking entrar em escopo.
 - Filtro por categoria na Home (adiado — ver acima).
 - Habilitar "Leaked password protection" no Supabase quando o projeto for pra plano Pro.
+- Decidir quando trazer `test.design-local` pra `main` (usuário optou por deixar as branches como estão por enquanto).
+- 12 vulnerabilidades (10 moderate/2 high) do `npm audit` são todas em ferramental de build do Expo (transitively via `xcode`/`@expo/config-plugins`), não em código que roda no app publicado; corrigir exigiria pular pro Expo SDK 57 (`npm audit fix --force`), fora de escopo desta rodada.
 
 _Plano de referência completo em:_ `C:\Users\kenie\.claude\plans\me-mostre-como-vc-staged-lightning.md`
