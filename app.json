@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Ofertaki",
-    "slug": "ofertaki-app",
+    "slug": "ofertaki",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -32,6 +32,12 @@
           "cameraPermission": "O Ofertaki usa a câmera para você fotografar promoções na hora de publicar."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "c4ad1e76-89b1-4cda-b7be-73597d5e3d1e"
+      }
+    },
+    "owner": "kenieldotcoms-team"
   }
 }

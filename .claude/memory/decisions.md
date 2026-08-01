@@ -179,6 +179,23 @@ uma foto já existente da galeria não tem mais essa opção nesta tela.
 
 ---
 
+## Projeto EAS sob a conta de time; sem `RECORD_AUDIO`
+
+**Contexto**: ao rodar `eas login` + `eas build:configure`, o `app.json` ganhou
+`extra.eas.projectId`, `owner` e, sem necessidade aparente,
+`android.permissions: ["RECORD_AUDIO"]` — nada no app grava áudio.
+
+**Decisão**: manter o projeto sob a conta de **time** `kenieldotcoms-team`
+(não a pessoal) e o novo `slug: "ofertaki"` (confirmados pelo usuário).
+Remover `android.permissions`/`RECORD_AUDIO` — sem uso real, e pedir
+permissão de microfone sem motivo é bandeira vermelha na revisão de loja.
+
+**Consequências**: builds futuros (`eas build`) usam o projeto
+`c4ad1e76-89b1-4cda-b7be-73597d5e3d1e`. Se algum dia o app precisar de áudio
+de verdade, adicionar a permissão de volta nessa hora, com justificativa.
+
+---
+
 ## Base de conhecimento Claude Code: versão essencial, sem agentes/prompts/templates/hooks
 
 **Contexto**: uma estrutura completa de conhecimento Claude Code (`CLAUDE.md` +

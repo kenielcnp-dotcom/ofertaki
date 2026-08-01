@@ -6,8 +6,6 @@
 
 ## Bloqueia o lançamento
 
-- [ ] **Criar projeto EAS**: `eas login` + `eas build:configure` (gera
-      `extra.eas.projectId`) — sem isso não há `eas build` de verdade.
 - [ ] **Configurar env vars no EAS** (`eas env:create`) para
       `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_ANON_KEY` — o `.env`
       local é gitignored e não sobe para o build na nuvem.

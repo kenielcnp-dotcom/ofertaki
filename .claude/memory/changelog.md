@@ -3,6 +3,14 @@
 > Histórico de mudanças relevantes no projeto. Formato: mais recente no topo.
 > O detalhe de cada decisão fica em `decisions.md`.
 
+## [2026-08-01] Projeto EAS criado
+
+- `eas login` + `eas build:configure` rodados: `extra.eas.projectId` e `owner`
+  (`kenieldotcoms-team`, conta de time) adicionados ao `app.json`. `slug`
+  mudou de `ofertaki-app` para `ofertaki` (confirmado pelo usuário).
+- O fluxo também adicionou `android.permissions: ["RECORD_AUDIO"]` sem motivo
+  — nada no app usa áudio/microfone. Removido; ver `decisions.md`.
+
 ## [2026-08-01] Base de conhecimento Claude Code (essencial) adicionada ao repo
 
 - Adicionados `CLAUDE.md` + `.claude/memory/` + `.claude/docs/` + `.claude/skills/`
