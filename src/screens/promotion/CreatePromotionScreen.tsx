@@ -51,11 +51,11 @@ export function CreatePromotionScreen({ navigation }: Props) {
           <Image source={{ uri: imageUri }} style={styles.preview} />
         ) : (
           <View style={styles.placeholder}>
-            <Text style={styles.placeholderText}>Nenhuma foto selecionada</Text>
+            <Text style={styles.placeholderText}>Nenhuma foto tirada ainda</Text>
           </View>
         )}
         <Button
-          label={imageUri ? 'Trocar foto' : 'Selecionar foto'}
+          label={imageUri ? 'Tirar outra foto' : 'Tirar foto'}
           variant="secondary"
           loading={picking}
           onPress={pickImage}

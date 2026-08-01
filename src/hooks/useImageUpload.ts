@@ -7,14 +7,14 @@ export function useImageUpload() {
   const [picking, setPicking] = useState(false);
 
   async function pickImage() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
       return false;
     }
 
     setPicking(true);
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
+      const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ['images'],
         quality: 1,
         allowsEditing: true,
