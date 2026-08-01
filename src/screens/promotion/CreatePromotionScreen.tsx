@@ -15,7 +15,13 @@ type Props = MainTabScreenProps<'Publicar'>;
 
 export function CreatePromotionScreen({ navigation }: Props) {
   const { markets } = useMarkets();
-  const { uri: imageUri, picking, pickImage, reset: resetImage } = useImageUpload();
+  const {
+    uri: imageUri,
+    picking,
+    error: imageError,
+    pickImage,
+    reset: resetImage,
+  } = useImageUpload();
   const { submit, submitting, error } = useCreatePromotion();
 
   const [title, setTitle] = useState('');
@@ -60,6 +66,7 @@ export function CreatePromotionScreen({ navigation }: Props) {
           loading={picking}
           onPress={pickImage}
         />
+        {imageError ? <Text style={styles.errorText}>{imageError}</Text> : null}
       </View>
 
       <Input label="Título" value={title} onChangeText={setTitle} placeholder="Ex: Arroz 5kg" />

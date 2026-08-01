@@ -5,10 +5,17 @@ import * as ImageManipulator from 'expo-image-manipulator';
 export function useImageUpload() {
   const [uri, setUri] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function pickImage() {
+    setError(null);
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
+      setError(
+        permission.canAskAgain
+          ? 'Permita o acesso à câmera para tirar a foto.'
+          : 'Acesso à câmera bloqueado. Ative a permissão de câmera do Expo Go/app nas configurações do celular.'
+      );
       return false;
     }
 
@@ -33,6 +40,9 @@ export function useImageUpload() {
 
       setUri(manipulated.uri);
       return true;
+    } catch {
+      setError('Não foi possível abrir a câmera. Tente novamente.');
+      return false;
     } finally {
       setPicking(false);
     }
@@ -40,7 +50,8 @@ export function useImageUpload() {
 
   function reset() {
     setUri(null);
+    setError(null);
   }
 
-  return { uri, picking, pickImage, reset };
+  return { uri, picking, error, pickImage, reset };
 }
