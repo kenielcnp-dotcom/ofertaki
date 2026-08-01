@@ -36,14 +36,17 @@ pelo `app.json`.
 `EXPO_PUBLIC_SUPABASE_ANON_KEY` e falha no carregamento se faltarem.
 
 - **Local**: `.env` (gitignored). `.env.example` documenta as duas vars.
-- **EAS**: o `.env` local **não** sobe para o build na nuvem — as vars precisam
-  ser criadas com `eas env:create`. Ver `.claude/memory/roadmap.md`.
+- **EAS**: o `.env` local **não** sobe para o build na nuvem — as vars vivem no
+  EAS (`eas env:set`, comando atual; `eas env:create` está deprecated).
+  Configuradas em 2026-08-01 nos três ambientes (`development`, `preview`,
+  `production`), visibilidade `plaintext` (a anon key é pública por natureza).
+  Conferir com `eas env:list --environment <nome>`.
 
 ## Antes do primeiro build real
 
 1. ~~`eas login` + `eas build:configure`~~ — feito em 2026-08-01, projeto EAS
    `c4ad1e76-89b1-4cda-b7be-73597d5e3d1e` sob `kenieldotcoms-team`.
-2. `eas env:create` para as duas vars do Supabase — ainda pendente.
+2. ~~`eas env:create` para as duas vars do Supabase~~ — feito em 2026-08-01.
 3. Confirmar o bundle id definitivo — ainda pendente.
 4. Contas Apple Developer / Google Play, ícones de loja, screenshots e política
    de privacidade.

@@ -6,9 +6,6 @@
 
 ## Bloqueia o lançamento
 
-- [ ] **Configurar env vars no EAS** (`eas env:create`) para
-      `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_ANON_KEY` — o `.env`
-      local é gitignored e não sobe para o build na nuvem.
 - [ ] **Confirmar `com.ofertaki.app`** como bundle id / package definitivo (hoje
       é placeholder) antes de submeter às lojas.
 - [ ] Ficha das lojas: contas Apple Developer / Google Play, ícones,

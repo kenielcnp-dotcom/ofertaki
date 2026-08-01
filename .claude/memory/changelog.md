@@ -3,6 +3,13 @@
 > Histórico de mudanças relevantes no projeto. Formato: mais recente no topo.
 > O detalhe de cada decisão fica em `decisions.md`.
 
+## [2026-08-01] Env vars do Supabase configuradas no EAS
+
+- `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_ANON_KEY` criadas via
+  `eas env:set` (o `.env` local não sobe pro build na nuvem) nos três
+  ambientes (`development`, `preview`, `production`), visibilidade
+  `plaintext`. Confirmado com `eas env:list`.
+
 ## [2026-08-01] Projeto EAS criado
 
 - `eas login` + `eas build:configure` rodados: `extra.eas.projectId` e `owner`
