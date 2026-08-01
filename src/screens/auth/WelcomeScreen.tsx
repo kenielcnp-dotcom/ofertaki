@@ -24,7 +24,12 @@ export function WelcomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
 
   return (
-    <ImageBackground source={BACKGROUND_IMAGE} style={styles.background}>
+    <ImageBackground 
+      source={BACKGROUND_IMAGE} 
+      style={styles.background}
+      resizeMode="cover"
+      imageStyle={{ width: '100%', height: '100%' }}
+    >
       <LinearGradient
         colors={['rgba(15,51,30,0.15)', 'rgba(15,51,30,0.7)', 'rgba(15,51,30,0.97)']}
         locations={[0, 0.45, 1]}
@@ -74,8 +79,8 @@ export function WelcomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  background: { flex: 1, backgroundColor: colors.primaryDark },
-  gradient: { flex: 1, justifyContent: 'flex-end' },
+  background: { flex: 1, width: '100%', height: '100%', backgroundColor: colors.primaryDark },
+  gradient: { flex: 1, width: '100%', height: '100%', justifyContent: 'flex-end' },
   content: { paddingHorizontal: spacing.lg },
   logo: { width: 150, height: 54, marginBottom: spacing.lg },
   headline: { ...typography.display, color: colors.primaryText },
