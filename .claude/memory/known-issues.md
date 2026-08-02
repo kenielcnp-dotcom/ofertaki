@@ -15,21 +15,30 @@ Formato por entrada:
 
 ---
 
-## Comandos de config do EAS reintroduzem `RECORD_AUDIO`
+## `RECORD_AUDIO` sempre presente no build final, mesmo sem estar no `app.json`
 
 **Sintoma**: tanto `eas build:configure` quanto `eas update:configure`
-adicionaram `android.permissions: ["RECORD_AUDIO"]` ao `app.json` sem nada no
-app usar áudio/microfone — a segunda vez, inclusive duplicado.
+"reintroduziram" `android.permissions: ["RECORD_AUDIO"]` no `app.json` em
+sessões anteriores — sempre removido manualmente. Mas mesmo com o `app.json`
+limpo (confirmado, sem esse array), `npx expo config --json` mostra
+`android.permissions` com `RECORD_AUDIO` mesmo assim.
 
-**Impacto**: nenhum ainda (sempre removido antes de commitar), mas é
-recorrente — qualquer comando de config do EAS rodado no futuro
-(`eas build:configure`, `eas update:configure`, `eas credentials`, etc.) pode
-reintroduzir isso silenciosamente.
+**Causa raiz confirmada (2026-08-02)**: não vem do `app.json` nem de nenhum
+comando do EAS CLI "reinjetando" nada — é o **plugin do `expo-image-picker`**
+(`node_modules/expo-image-picker/plugin/src/withImagePicker.ts`), que pede
+`RECORD_AUDIO` por padrão (suporte a gravar vídeo) a menos que
+`microphonePermission: false` seja passado explicitamente na config do
+plugin em `app.json`. As "correções" anteriores nunca resolviam de verdade —
+só escondiam do `app.json`, mas o config resolvido (o que realmente vai pro
+build) continuava incluindo.
 
-**Status**: sem causa raiz confirmada (possivelmente algo no ambiente/cache
-local do EAS CLI, não do projeto). Mitigação atual: **sempre conferir o diff
-de `app.json` depois de qualquer comando `eas ...:configure`** antes de
-commitar; remover `android.permissions` se reaparecer sem motivo.
+**Impacto**: nenhuma função do app usa áudio/microfone; a permissão pedida
+sem uso real pode levantar bandeira em revisão de loja (Play Store).
+
+**Status**: causa raiz confirmada, correção **ainda não aplicada** —
+depende de novo build nativo (não dá pra OTA). Fix: adicionar
+`microphonePermission: false` na config do plugin `expo-image-picker` em
+`app.json`.
 
 ---
 

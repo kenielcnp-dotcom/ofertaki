@@ -3,6 +3,19 @@
 > Histórico de mudanças relevantes no projeto. Formato: mais recente no topo.
 > O detalhe de cada decisão fica em `decisions.md`.
 
+## [2026-08-02] App fechava ao abrir Notificações
+
+- **Sintoma**: abrir a tela de Alertas fechava o app. Causa: o sino novo no
+  header da Home (feature anterior) chama `useNotifications()` pra saber se
+  há notificação não lida; a tela de Alertas chama o mesmo hook. Como as
+  duas telas ficam montadas ao mesmo tempo (abas), as duas tentavam abrir uma
+  inscrição Realtime do Supabase com o **mesmo nome de canal**
+  (`notifications:${userId}`) — colisão.
+- `notifications.service.ts`: `subscribeToNewNotifications` agora gera um
+  sufixo aleatório por chamada (`notifications:${userId}:${uniqueId}`), então
+  múltiplas telas podem se inscrever ao mesmo tempo sem colidir.
+- Publicado via `eas update` (mudança só de JS).
+
 ## [2026-08-02] Barra de navegação do Android sobrepondo a BottomTabBar
 
 - `src/navigation/MainTabs.tsx`: `tabBarStyle` tinha altura/`paddingBottom`
