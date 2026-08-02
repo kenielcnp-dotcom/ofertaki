@@ -1,5 +1,6 @@
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { createBottomTabNavigator, type BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { FeedScreen } from '../screens/feed/FeedScreen';
 import { ListaScreen } from '../screens/lista/ListaScreen';
@@ -12,6 +13,9 @@ import { fonts, shadows } from '../theme/typography';
 import type { MainTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
+
+/** Altura do conteúdo da tab bar (ícone + label), sem a área segura do sistema. */
+const TAB_BAR_CONTENT_HEIGHT = 60;
 
 function TabLabel({ label, focused }: { label: string; focused: boolean }) {
   return (
@@ -50,13 +54,18 @@ function PublishTabButton({ onPress, accessibilityState, accessibilityLabel }: B
 }
 
 export function MainTabs() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSubtle,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [
+          styles.tabBar,
+          { height: TAB_BAR_CONTENT_HEIGHT + insets.bottom, paddingBottom: insets.bottom + spacing.xs },
+        ],
         tabBarItemStyle: styles.tabItem,
       }}
     >
@@ -106,9 +115,7 @@ export function MainTabs() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: Platform.OS === 'ios' ? 86 : 68,
     paddingTop: spacing.xs + 2,
-    paddingBottom: Platform.OS === 'ios' ? spacing.lg : spacing.sm,
     backgroundColor: colors.background,
     borderTopWidth: 1,
     borderTopColor: colors.border,

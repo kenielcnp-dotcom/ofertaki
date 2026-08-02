@@ -3,6 +3,20 @@
 > Histórico de mudanças relevantes no projeto. Formato: mais recente no topo.
 > O detalhe de cada decisão fica em `decisions.md`.
 
+## [2026-08-02] Barra de navegação do Android sobrepondo a BottomTabBar
+
+- `src/navigation/MainTabs.tsx`: `tabBarStyle` tinha altura/`paddingBottom`
+  fixos por plataforma e nunca somava `useSafeAreaInsets().bottom` — em
+  Android com navegação gestual (edge-to-edge, padrão do Expo SDK 54), a
+  barra de sistema ficava por cima do conteúdo da tab bar. Corrigido:
+  altura de conteúdo fixa (`TAB_BAR_CONTENT_HEIGHT = 60`) + `insets.bottom`
+  somado à altura e ao `paddingBottom`, mesmo padrão já usado em
+  `ScreenHeader.tsx`/`WelcomeScreen.tsx`.
+- Diagnóstico inicial veio de fora (ChatGPT) sugerindo Expo Router
+  (`app/_layout.tsx`) — não se aplica a este projeto (React Navigation
+  direto); a causa raiz real (safe area) estava certa, só a localização não.
+- Publicado via `eas update --channel preview` (mudança só de JS).
+
 ## [2026-08-02] Cabeçalho da Home: logotipo, sino/perfil, filtro e departamentos
 
 - Migration `0018`: tabela `departments` (Alimentos, Bebidas, Higiene,
