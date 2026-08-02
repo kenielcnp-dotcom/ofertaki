@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
@@ -16,6 +18,7 @@ type ScreenHeaderProps = {
 
 export function ScreenHeader({ title, subtitle, right, tone = 'light', children }: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
   const isBrand = tone === 'brand';
 
   return (
@@ -26,6 +29,7 @@ export function ScreenHeader({ title, subtitle, right, tone = 'light', children 
         { paddingTop: insets.top + spacing.md },
       ]}
     >
+      {isFocused ? <StatusBar style={isBrand ? 'light' : 'dark'} /> : null}
       <View style={styles.row}>
         <View style={styles.texts}>
           <Text style={[typography.title, isBrand ? styles.titleBrand : styles.titleLight]}>{title}</Text>

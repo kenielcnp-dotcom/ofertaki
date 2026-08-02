@@ -3,6 +3,21 @@
 > Histórico de mudanças relevantes no projeto. Formato: mais recente no topo.
 > O detalhe de cada decisão fica em `decisions.md`.
 
+## [2026-08-02] Ícones da status bar ilegíveis sobre o header verde da Home
+
+- `App.tsx` fixava `<StatusBar style="dark" />` globalmente; a Home usa
+  `ScreenHeader` com `tone="brand"` (fundo verde escuro), então ícones
+  escuros da status bar ficavam ilegíveis por cima do header — não era bug
+  de overlap/espaçamento (o `insets.top` já era somado corretamente), era
+  falta de contraste.
+- `ScreenHeader` agora renderiza `<StatusBar style={isBrand ? 'light' :
+  'dark'} />` (de `expo-status-bar`) internamente, só quando a tela está em
+  foco (`useIsFocused`, de `@react-navigation/native`) — evita que uma tela
+  `brand` montada em background numa tab troque o estilo global enquanto
+  outra tela está em foco. `App.tsx` continua com `style="dark"` como
+  padrão para as demais telas (fundo claro).
+- Mudança só de JS — publicada via `eas update`, sem precisar de build novo.
+
 ## [2026-08-01] Env vars do Supabase configuradas no EAS
 
 - `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_ANON_KEY` criadas via
