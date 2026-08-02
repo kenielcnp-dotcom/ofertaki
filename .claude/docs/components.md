@@ -53,12 +53,22 @@ Base para os skeletons compostos.
 ## `src/components/promotion/`
 
 ### PromotionCard
-Card da promoção no feed: imagem, título, preço formatado, mercado e as três
-estatísticas (curtidas, confirmações, comentários). `accessibilityLabel` inclui
-título + preço.
+Card da promoção no feed: preço em destaque com o valor original riscado,
+selo de desconto (`discountPercent`), badge de confirmações sobre a foto,
+selo 🔥 "Oferta quente" condicional (`isHotDeal`), título, mercado + "publicado
+há X min", stats (curtidas/confirmações/comentários/nota) e botão de salvar
+(ícone de marcador). Props `isSaved`/`onToggleSave` opcionais — quando
+ausentes, some o botão de salvar (compatível com quem não passa a Lista).
+`accessibilityLabel` inclui título + preço.
 
 ### PromotionCardSkeleton
 Versão skeleton do `PromotionCard`, usada no carregamento do feed.
+
+### StarRating
+Estrelas (1-5). Modo somente-leitura (`value` + `count` opcional, ex. "4,8
+(152)") ou interativo (passar `onRate`, vira tocável). Usado no `PromotionCard`
+(somente-leitura) e no `PromotionDetailScreen` (os dois modos: média geral +
+widget pra avaliar).
 
 ### ActionPill
 Pílula de interação social (curtir / confirmar) do detalhe da promoção. Tem

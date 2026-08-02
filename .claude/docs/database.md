@@ -1,7 +1,7 @@
 # Banco de Dados
 
 Supabase (Postgres). A **fonte da verdade do schema são as migrations** em
-`supabase/migrations/` (`0001`–`0016`) — nunca alterar o banco só pelo
+`supabase/migrations/` (`0001`–`0017`) — nunca alterar o banco só pelo
 dashboard. Os tipos TypeScript em `src/types/database.types.ts` são **gerados**
 (`supabase gen types typescript`), não editados à mão.
 
@@ -16,6 +16,7 @@ dashboard. Os tipos TypeScript em `src/types/database.types.ts` são **gerados**
 | `likes` | curtidas em promoção |
 | `comments` | comentários em promoção |
 | `confirmations` | confirmações de que o preço está correto |
+| `ratings` | avaliação (1-5 estrelas) de uma promoção |
 | `lista_compras` | lista de compras pessoal (privada) |
 | `points_ledger` | lançamentos de pontos (fonte da reputação) |
 | `notifications` | notificações in-app |
@@ -31,7 +32,14 @@ dashboard. Os tipos TypeScript em `src/types/database.types.ts` são **gerados**
 `original_price` (valor sem a promoção, obrigatório, `check (original_price
 >= price)` — migration `0016`), `image_url`, `expires_at`, `status`,
 contadores (`likes_count`, `comments_count`, `confirmations_count`,
-`reports_count`), `search_vector` (`tsvector`), timestamps.
+`reports_count`), `avg_rating`/`ratings_count` (média e contagem de
+avaliações, mantidos por trigger — migration `0017`), `search_vector`
+(`tsvector`), timestamps.
+
+**`ratings`** — `id`, `promotion_id`, `user_id`, `score` (`check (score
+between 1 and 5)`), `unique (promotion_id, user_id)` — um usuário pode trocar
+o próprio voto (`update`), não duplicar. Qualquer usuário logado avalia, a
+qualquer momento, exceto o autor da própria promoção.
 
 **`reports`** — `id`, `promotion_id`, `user_id`, `reason`
 (`expired` | `fake` | `wrong_price` | `inappropriate` | `other`), `details`.
@@ -45,7 +53,7 @@ não pelo cliente; usado pelo painel de economia mensal da `ListaScreen`).
 
 - `profiles` 1—N `promotions` (autor)
 - `mercados` 1—N `promotions` · `categories` 1—N `promotions`
-- `promotions` 1—N `likes` / `comments` / `confirmations` / `reports`
+- `promotions` 1—N `likes` / `comments` / `confirmations` / `ratings` / `reports`
 - `profiles` 1—N `lista_compras` / `points_ledger` / `notifications`
 
 ## Regras aplicadas no banco (não no app)
@@ -56,8 +64,11 @@ vive aqui:
 - **Perfil automático**: trigger `handle_new_user` cria a linha em `profiles`
   no signup.
 - **Contadores** (`likes_count`, `comments_count`, `confirmations_count`,
-  `reports_count`): `REVOKE` de coluna — nem o autor edita via UPDATE. Só
-  triggers `SECURITY DEFINER` escrevem.
+  `reports_count`, `avg_rating`, `ratings_count`): `REVOKE` de coluna — nem o
+  autor edita via UPDATE. Só triggers `SECURITY DEFINER` escrevem.
+  `avg_rating`/`ratings_count` são recalculados do zero (`avg`/`count` sobre
+  `ratings`) a cada insert/update/delete — não são um delta incremental como
+  os demais contadores, porque uma nota pode ser trocada (migration `0017`).
 - **`promotions.status`**: `REVOKE UPDATE (status)` (migration `0014`) — impede
   o autor de reverter uma remoção automática por denúncia.
 - **`profiles.reputation_score`**: sincronizado por trigger a partir de

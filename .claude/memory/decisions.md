@@ -13,6 +13,38 @@ foram tomadas. Formato por entrada:
 
 ---
 
+## [2026-08-02] Card de promoção elaborado: avaliação, oferta quente e salvar
+
+**Contexto**: o usuário mandou um modelo de card bem mais rico que o atual e
+pediu pra usar como referência. Ele já tinha nota por estrelas, selo "oferta
+quente" e botão "Salvar" — nenhum dos três existia no app.
+
+**Decisão**:
+- **Avaliação**: qualquer usuário logado pode avaliar (1-5 estrelas) a
+  qualquer momento, um voto por usuário por promoção, pode trocar depois.
+  Não exige ter confirmado a oferta antes.
+- **Oferta quente**: regra automática, sem moderação — confirmações altas
+  (`>= 10`) nas primeiras 24h desde a publicação. Calculado no cliente a
+  partir de dados que já existem (`confirmations_count`, `created_at`), sem
+  coluna nova.
+- **Salvar**: em vez de uma tabela de favoritos nova, o botão "Salvar" do
+  card reaproveita a Lista de compras já existente (`lista_compras` /
+  `useListaCompras`) — pressionar adiciona a promoção à lista do usuário,
+  pressionar de novo remove. **"Confirmar" continua servindo só pra validar
+  que a oferta é real** — as duas ações ficam desacopladas.
+
+**Alternativas consideradas**: tabela de favoritos separada pro "Salvar" —
+descartada porque duplicaria o que a Lista de compras já faz (o usuário só
+precisa de "isso eu quero comprar", que é exatamente o que a Lista já
+representa).
+
+**Consequências**: `avg_rating`/`ratings_count` viram mais dois contadores
+protegidos por `REVOKE` em `promotions` (migration `0017`), recalculados do
+zero a cada mudança em `ratings` (não são delta incremental, porque o voto
+pode ser trocado). O limiar de "oferta quente" (10 confirmações / 24h) é uma
+constante em `src/utils/promotionInsights.ts`, fácil de ajustar depois sem
+migration.
+
 ## Hotbar: 5 abas com "Publicar" central
 
 **Contexto**: o plano original tinha Busca e Ranking como abas próprias, o que

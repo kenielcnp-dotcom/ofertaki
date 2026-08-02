@@ -5,6 +5,7 @@ import { ErrorState } from '../../components/common/ErrorState';
 import { Input } from '../../components/common/Input';
 import { Skeleton } from '../../components/common/Skeleton';
 import { ReportModal } from '../../components/promotion/ReportModal';
+import { StarRating } from '../../components/promotion/StarRating';
 import { usePromotionDetail } from '../../hooks/usePromotionDetail';
 import { useListaCompras } from '../../hooks/useListaCompras';
 import { useReportPromotion } from '../../hooks/useReportPromotion';
@@ -30,9 +31,11 @@ export function PromotionDetailScreen({ route }: Props) {
     comments,
     hasLiked,
     hasConfirmed,
+    userRating,
     isAuthor,
     toggleLike,
     toggleConfirm,
+    rate,
     addComment,
   } = usePromotionDetail(promotionId);
   const { addItem } = useListaCompras();
@@ -79,6 +82,22 @@ export function PromotionDetailScreen({ route }: Props) {
           <Text style={styles.price}>{formatPrice(promotion.price)}</Text>
           {promotion.mercados?.name ? <Text style={styles.store}>{promotion.mercados.name}</Text> : null}
           {promotion.description ? <Text style={styles.description}>{promotion.description}</Text> : null}
+
+          <View style={styles.ratingBlock}>
+            <StarRating
+              value={promotion.avg_rating}
+              count={promotion.ratings_count}
+              size={20}
+            />
+            {!isAuthor ? (
+              <View style={styles.myRating}>
+                <Text style={styles.myRatingLabel}>
+                  {userRating ? 'Sua nota:' : 'Avaliar:'}
+                </Text>
+                <StarRating value={userRating} size={22} onRate={(score) => rate.mutate(score)} />
+              </View>
+            ) : null}
+          </View>
 
           <View style={styles.actionsRow}>
             <Button
@@ -161,6 +180,9 @@ const styles = StyleSheet.create({
   price: { color: colors.primary, fontWeight: '700', fontSize: 20, marginTop: spacing.xs },
   store: { color: colors.textMuted, marginTop: spacing.xs },
   description: { marginTop: spacing.md, color: colors.text },
+  ratingBlock: { marginTop: spacing.md, gap: spacing.xs },
+  myRating: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  myRatingLabel: { color: colors.textMuted, fontSize: 13 },
   actionsRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg, marginBottom: spacing.md },
   commentsTitle: { marginTop: spacing.lg, marginBottom: spacing.sm },
   comment: { paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },

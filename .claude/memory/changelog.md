@@ -3,6 +3,25 @@
 > Histórico de mudanças relevantes no projeto. Formato: mais recente no topo.
 > O detalhe de cada decisão fica em `decisions.md`.
 
+## [2026-08-02] Card de promoção redesenhado + avaliação + oferta quente + salvar
+
+- Migration `0017`: tabela `ratings` (1-5 estrelas, um voto por usuário,
+  pode trocar) + `promotions.avg_rating`/`ratings_count` mantidos por
+  trigger (recalculado do zero, não delta — ver `decisions.md`).
+- `PromotionCard.tsx` redesenhado: preço grande com o antigo riscado, selo
+  de desconto %, pílula "você economiza", confirmações em destaque sobre a
+  foto, "publicado há X min", nota por estrelas nas stats, selo 🔥 "Oferta
+  quente" condicional.
+- Novo `StarRating.tsx` (modo interativo e somente-leitura), usado no card e
+  em `PromotionDetailScreen.tsx` (widget pra avaliar).
+- Botão "Salvar" no card (ícone de marcador) — adiciona/remove da Lista de
+  compras (`useListaCompras`), sem tabela nova. "Confirmar" não muda:
+  continua só validando que a oferta é real.
+- Novo `src/utils/promotionInsights.ts`: `isHotDeal` (limiar ajustável,
+  10 confirmações/24h) e `discountPercent`, ambos client-side.
+- Sem `eas build`/`eas update` disparado — a pedido do usuário, mais
+  mudanças vêm antes do próximo deploy.
+
 ## [2026-08-02] Ícones da status bar ilegíveis sobre o header verde da Home
 
 - `App.tsx` fixava `<StatusBar style="dark" />` globalmente; a Home usa

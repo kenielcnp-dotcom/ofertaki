@@ -340,6 +340,7 @@ export type Database = {
       }
       promotions: {
         Row: {
+          avg_rating: number
           category_id: string
           comments_count: number
           confirmations_count: number
@@ -352,6 +353,7 @@ export type Database = {
           market_id: string
           original_price: number
           price: number
+          ratings_count: number
           reports_count: number
           search_vector: unknown
           status: string
@@ -360,6 +362,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          avg_rating?: number
           category_id: string
           comments_count?: number
           confirmations_count?: number
@@ -372,6 +375,7 @@ export type Database = {
           market_id: string
           original_price: number
           price: number
+          ratings_count?: number
           reports_count?: number
           search_vector?: unknown
           status?: string
@@ -380,6 +384,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          avg_rating?: number
           category_id?: string
           comments_count?: number
           confirmations_count?: number
@@ -392,6 +397,7 @@ export type Database = {
           market_id?: string
           original_price?: number
           price?: number
+          ratings_count?: number
           reports_count?: number
           search_vector?: unknown
           status?: string
@@ -416,6 +422,48 @@ export type Database = {
           },
           {
             foreignKeyName: "promotions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ratings: {
+        Row: {
+          created_at: string
+          id: string
+          promotion_id: string
+          score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          promotion_id: string
+          score: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          promotion_id?: string
+          score?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

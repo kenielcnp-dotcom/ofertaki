@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import { Input } from '../../components/common/Input';
 import { EmptyState } from '../../components/common/EmptyState';
@@ -8,6 +8,7 @@ import { IconButton } from '../../components/common/IconButton';
 import { PromotionCard } from '../../components/promotion/PromotionCard';
 import { PromotionCardSkeleton } from '../../components/promotion/PromotionCardSkeleton';
 import { usePromotions } from '../../hooks/usePromotions';
+import { useListaCompras } from '../../hooks/useListaCompras';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import type { MainTabScreenProps } from '../../navigation/types';
@@ -26,8 +27,17 @@ export function FeedScreen({ navigation }: Props) {
     refetch,
     isRefetching,
   } = usePromotions(search || undefined);
+  const { items: listItems, addItem, removeItem } = useListaCompras();
 
   const promotions = data?.pages.flat() ?? [];
+
+  const savedListItemByPromotion = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const item of listItems) {
+      if (item.promotion_id) map.set(item.promotion_id, item.id);
+    }
+    return map;
+  }, [listItems]);
 
   return (
     <View style={styles.container}>
@@ -81,12 +91,17 @@ export function FeedScreen({ navigation }: Props) {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <PromotionCard
-              promotion={item}
-              onPress={() => navigation.navigate('PromotionDetail', { promotionId: item.id })}
-            />
-          )}
+          renderItem={({ item }) => {
+            const savedItemId = savedListItemByPromotion.get(item.id);
+            return (
+              <PromotionCard
+                promotion={item}
+                onPress={() => navigation.navigate('PromotionDetail', { promotionId: item.id })}
+                isSaved={!!savedItemId}
+                onToggleSave={() => (savedItemId ? removeItem.mutate(savedItemId) : addItem.mutate(item.id))}
+              />
+            );
+          }}
           onEndReachedThreshold={0.4}
           onEndReached={() => {
             if (hasNextPage && !isFetchingNextPage) {

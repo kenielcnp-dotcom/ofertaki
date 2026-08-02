@@ -3,6 +3,7 @@ import { promotionsService } from '../services/promotions.service';
 import { likesService } from '../services/likes.service';
 import { confirmationsService } from '../services/confirmations.service';
 import { commentsService } from '../services/comments.service';
+import { ratingsService } from '../services/ratings.service';
 import { useAuthContext } from '../contexts/AuthContext';
 
 export function usePromotionDetail(promotionId: string) {
@@ -46,9 +47,20 @@ export function usePromotionDetail(promotionId: string) {
     },
   });
 
+  const ratingsQuery = useQuery({
+    queryKey: ['ratings', promotionId],
+    queryFn: async () => {
+      const { data, error } = await ratingsService.listForPromotion(promotionId);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const hasLiked = !!userId && (likesQuery.data ?? []).some((like) => like.user_id === userId);
   const hasConfirmed =
     !!userId && (confirmationsQuery.data ?? []).some((confirmation) => confirmation.user_id === userId);
+  const userRating =
+    (userId && (ratingsQuery.data ?? []).find((rating) => rating.user_id === userId)?.score) || 0;
 
   function invalidateCounters() {
     queryClient.invalidateQueries({ queryKey: ['promotion', promotionId] });
@@ -150,6 +162,50 @@ export function usePromotionDetail(promotionId: string) {
     onSettled: invalidateCounters,
   });
 
+  const rate = useMutation({
+    mutationFn: async (score: number) => {
+      if (!userId) throw new Error('Faça login para avaliar.');
+      const { error } = await ratingsService.rate(promotionId, userId, score);
+      if (error) throw error;
+    },
+    onMutate: async (score: number) => {
+      await queryClient.cancelQueries({ queryKey: ['promotion', promotionId] });
+      await queryClient.cancelQueries({ queryKey: ['ratings', promotionId] });
+
+      const previousPromotion = queryClient.getQueryData(['promotion', promotionId]);
+      const previousRatings = queryClient.getQueryData(['ratings', promotionId]);
+
+      const nextRatings = (() => {
+        const current = (previousRatings as { user_id: string; score: number }[] | undefined) ?? [];
+        const withoutMine = current.filter((r) => r.user_id !== userId);
+        return [...withoutMine, { user_id: userId, promotion_id: promotionId, id: 'optimistic', score, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }];
+      })();
+      const avg = nextRatings.length
+        ? Math.round((nextRatings.reduce((sum, r) => sum + r.score, 0) / nextRatings.length) * 10) / 10
+        : 0;
+
+      queryClient.setQueryData(['ratings', promotionId], nextRatings);
+      queryClient.setQueryData(['promotion', promotionId], (old: any) => {
+        if (!old) return old;
+        return { ...old, avg_rating: avg, ratings_count: nextRatings.length };
+      });
+
+      return { previousPromotion, previousRatings };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousPromotion) {
+        queryClient.setQueryData(['promotion', promotionId], context.previousPromotion);
+      }
+      if (context?.previousRatings) {
+        queryClient.setQueryData(['ratings', promotionId], context.previousRatings);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['promotion', promotionId] });
+      queryClient.invalidateQueries({ queryKey: ['ratings', promotionId] });
+    },
+  });
+
   const addComment = useMutation({
     mutationFn: async (body: string) => {
       if (!userId) throw new Error('Faça login para comentar.');
@@ -170,9 +226,11 @@ export function usePromotionDetail(promotionId: string) {
     comments: commentsQuery.data ?? [],
     hasLiked,
     hasConfirmed,
+    userRating,
     isAuthor: !!userId && promotionQuery.data?.user_id === userId,
     toggleLike,
     toggleConfirm,
+    rate,
     addComment,
   };
 }
