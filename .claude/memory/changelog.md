@@ -3,6 +3,41 @@
 > Histórico de mudanças relevantes no projeto. Formato: mais recente no topo.
 > O detalhe de cada decisão fica em `decisions.md`.
 
+## [2026-08-02] Fase 6 (parte 2): testes automatizados (Jest + RNTL)
+
+- Infra: `jest-expo` ~54.0.17 + `jest` ~29.7.0 + `@testing-library/react-native` ^14.0.1
+  (devDependencies), preset `jest-expo` + `transformIgnorePatterns` no
+  `package.json`, script `npm test`, `"types": ["jest"]` no `tsconfig.json`.
+- `expo-asset` virou dependência direta (`~12.0.13`): o `expo-font` (hoisted)
+  não conseguia resolvê-lo no Jest — o pacote estava aninhado em
+  `node_modules/expo/node_modules/`. `expo install expo-asset` também
+  registrou o plugin no `app.json` (padrão do comando, inofensivo).
+- **RNTL v14 mudou a API**: `render` e `fireEvent` são **assíncronos**
+  (retornam Promise) — os testes precisam `await render(...)` /
+  `await fireEvent.press(...)`. Ver `decisions.md`.
+- 28 testes em 4 suítes: `promotionInsights`, `formatters`, `validation`
+  (utilidades puras, com `jest.useFakeTimers()` pra controlar `Date.now()`) e
+  `StarRating` (componente, modos leitura e interativo).
+- **Bug real encontrado pelo teste**: `formatRelativeTime` produzia "há 2
+  mêses" (plural errado de "mês" — o código anexava "es" a "mês"). Corrigido
+  para `há ${months} ${months === 1 ? 'mês' : 'meses'}`.
+- `npx tsc --noEmit` limpo. Detox/Maestro continua como possibilidade futura
+  (ver `roadmap.md`).
+
+## [2026-08-02] Permissão RECORD_AUDIO removida de vez do build
+
+- Causa raiz (confirmada em `known-issues.md`): o plugin do `expo-image-picker`
+  pedia `RECORD_AUDIO` por padrão a menos que `microphonePermission: false`
+  fosse passado na config — correções anteriores só escondiam do `app.json`,
+  mas o config resolvido (o que vai pro build) continuava incluindo.
+- `app.json`: adicionado `microphonePermission: false` à config do plugin
+  `expo-image-picker` (ao lado de `photosPermission`/`cameraPermission`).
+- Verificado com `npx expo config --json`: `android.permissions` deixou de
+  existir no config resolvido (antes continha `RECORD_AUDIO`). `expo-doctor`
+  passa 18/18 checks.
+- **Observação**: para valer de verdade precisa de um novo build nativo (não
+  dá pra OTA). Sem `eas build`/`eas update` disparado — a pedido do usuário.
+
 ## [2026-08-02] Lista de compras compartilhável por código
 
 - Precedido de uma prévia (Artifact) validando a ideia antes de qualquer

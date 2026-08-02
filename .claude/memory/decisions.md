@@ -13,6 +13,38 @@ foram tomadas. Formato por entrada:
 
 ---
 
+## [2026-08-02] Testes automatizados com Jest + RNTL v14 (Fase 6 parte 2)
+
+**Contexto**: o projeto não tinha nenhum teste automatizado; a Fase 6 parte 1
+(erro/retry, skeleton, acessibilidade, RLS) foi entregue com testes adiados
+para uma rodada própria.
+
+**Decisão**:
+- `jest-expo` (preset) + `jest` + `@testing-library/react-native`, todos na
+  versão pinada pelo SDK 54 (`npx expo install`), como devDependencies —
+  ferramenta de teste não vai pro bundle.
+- `"types": ["jest"]` no `tsconfig.json` pros globals dos testes.
+- Testes começam pelas **utilidades puras** (`formatters`, `promotionInsights`,
+  `validation`) — nenhum mock de rede, máquina de estados controlada com
+  `jest.useFakeTimers()`/`jest.setSystemTime()` — e depois por componentes
+  puros (`StarRating`).
+- **RNTL v14 mudou a API**: `render` e `fireEvent` são **assíncronos**
+  (retornam Promise). Convenção: `await render(...)` e `await
+  fireEvent.press(...)` em todo teste. (A doc do Expo mostra `await render`
+  justamente por causa disso — não é render async/concurrent, é o padrão novo.)
+- `expo-asset` entrou como dependência direta: o `expo-font` hoisted não
+  resolvia o pacote (estava aninhado em `node_modules/expo/node_modules/`),
+  quebrando o Jest — o Metro tolera, o resolver do Jest não.
+
+**Alternativas consideradas**: Detox/Maestro (E2E) — adiado, exige emulador e
+muito setup; fica como possibilidade futura (ver `roadmap.md`).
+
+**Consequências**: base para adicionar testes às telas/hooks conforme o app
+cresce; o custo de mock do Supabase/React Navigation/Realtime fica para quando
+um teste de tela for realmente necessário.
+
+---
+
 ## [2026-08-02] Lista de compras vira compartilhável por código (`listas`/`lista_membros`/`lista_convites`)
 
 **Contexto**: o usuário pediu pra validar a ideia de compartilhar a lista de

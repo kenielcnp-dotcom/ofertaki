@@ -18,8 +18,9 @@
 
 ## A seguir
 
-- [ ] **Fase 6 (parte 2)**: testes automatizados — Jest + React Native Testing
-      Library, e possivelmente Detox/Maestro depois.
+- [ ] **Fase 6 (parte 3, opcional)**: testes E2E com Detox/Maestro — Jest +
+      React Native Testing Library já configurados e rodando (28 testes, ver
+      changelog 2026-08-02); falta o E2E no dispositivo/emulador.
 - [ ] **Deep link no reset de senha**: hoje o usuário redefine no navegador e
       volta para logar manualmente. Funcional, mas não é o fluxo ideal —
       depende de scheme/deep linking entrar em escopo.

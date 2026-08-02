@@ -35,10 +35,11 @@ build) continuava incluindo.
 **Impacto**: nenhuma função do app usa áudio/microfone; a permissão pedida
 sem uso real pode levantar bandeira em revisão de loja (Play Store).
 
-**Status**: causa raiz confirmada, correção **ainda não aplicada** —
-depende de novo build nativo (não dá pra OTA). Fix: adicionar
-`microphonePermission: false` na config do plugin `expo-image-picker` em
-`app.json`.
+**Status**: causa raiz confirmada e **corrigida no `app.json`** (2026-08-02) —
+`microphonePermission: false` adicionado à config do plugin
+`expo-image-picker`; `npx expo config --json` confirma que `RECORD_AUDIO`
+sumiu do config resolvido. Para valer de verdade, **depende de um novo build
+nativo** (não dá pra OTA) — reabrir se a permissão reaparecer no build.
 
 ---
 

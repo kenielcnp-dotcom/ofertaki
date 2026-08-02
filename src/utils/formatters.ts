@@ -17,7 +17,7 @@ export function formatRelativeTime(isoDate: string): string {
   if (days < 30) return `há ${days} d`;
 
   const months = Math.floor(days / 30);
-  if (months < 12) return `há ${months} mês${months > 1 ? 'es' : ''}`;
+  if (months < 12) return `há ${months} ${months === 1 ? 'mês' : 'meses'}`;
 
   return `há ${Math.floor(months / 12)} a`;
 }

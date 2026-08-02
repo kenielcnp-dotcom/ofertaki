@@ -27,9 +27,11 @@
         "expo-image-picker",
         {
           "photosPermission": "O Ofertaki usa suas fotos para anexar imagens às promoções que você publicar.",
-          "cameraPermission": "O Ofertaki usa a câmera para você fotografar promoções na hora de publicar."
+          "cameraPermission": "O Ofertaki usa a câmera para você fotografar promoções na hora de publicar.",
+          "microphonePermission": false
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "extra": {
       "eas": {
