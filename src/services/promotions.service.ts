@@ -5,17 +5,44 @@ import type { PromotionWithMarket } from '../types/promotion';
 const PAGE_SIZE = 20;
 const SELECT_WITH_MARKET = '*, mercados (name)';
 
+export type PromotionSort = 'recent' | 'confirmed';
+
 export const promotionsService = {
-  async list({ page = 0, search }: { page?: number; search?: string } = {}) {
+  async list({
+    page = 0,
+    search,
+    marketId,
+    departmentId,
+    sort = 'recent',
+  }: {
+    page?: number;
+    search?: string;
+    marketId?: string;
+    departmentId?: string;
+    sort?: PromotionSort;
+  } = {}) {
     let query = supabase
       .from('promotions')
       .select(SELECT_WITH_MARKET)
       .eq('status', 'active')
-      .order('created_at', { ascending: false })
       .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
+
+    if (sort === 'confirmed') {
+      query = query
+        .order('confirmations_count', { ascending: false })
+        .order('created_at', { ascending: false });
+    } else {
+      query = query.order('created_at', { ascending: false });
+    }
 
     if (search) {
       query = query.textSearch('search_vector', search, { type: 'websearch', config: 'portuguese' });
+    }
+    if (marketId) {
+      query = query.eq('market_id', marketId);
+    }
+    if (departmentId) {
+      query = query.eq('department_id', departmentId);
     }
 
     const result = await query;

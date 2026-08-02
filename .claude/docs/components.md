@@ -64,6 +64,16 @@ ausentes, some o botão de salvar (compatível com quem não passa a Lista).
 ### PromotionCardSkeleton
 Versão skeleton do `PromotionCard`, usada no carregamento do feed.
 
+### DepartmentChips
+Linha rolável horizontal no header da Home — "Todas" + cada `Department`
+(ícone + nome), avatar circular com anel laranja quando ativo. `selectedId`
+`null` = Todas.
+
+### FilterModal
+Bottom-sheet com "Mercado" (lista + "Todos os mercados") e "Ordenar por"
+(Mais recente | Mais confirmado). Estado rascunho interno, só aplica no botão
+"Aplicar filtros" — mesmo padrão visual de `MarketSelect`/`DepartmentSelect`.
+
 ### StarRating
 Estrelas (1-5). Modo somente-leitura (`value` + `count` opcional, ex. "4,8
 (152)") ou interativo (passar `onRate`, vira tocável). Usado no `PromotionCard`
@@ -91,6 +101,10 @@ destacada.
 ### MarketSelect
 Dropdown de mercado ("Loja"): campo pressionável que abre um modal com a lista
 de `mercados`. Suporta `error`.
+
+### DepartmentSelect
+Mesmo padrão do `MarketSelect`, pra `departments` — ícone do campo/opção vem
+de `department.icon` (nome do Ionicons salvo na tabela).
 
 ## `src/components/lista/`
 

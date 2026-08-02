@@ -3,7 +3,9 @@ import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { MarketSelect } from '../../components/forms/MarketSelect';
+import { DepartmentSelect } from '../../components/forms/DepartmentSelect';
 import { useMarkets } from '../../hooks/useMarkets';
+import { useDepartments } from '../../hooks/useDepartments';
 import { useCreatePromotion } from '../../hooks/useCreatePromotion';
 import { useImageUpload } from '../../hooks/useImageUpload';
 import { colors } from '../../theme/colors';
@@ -15,6 +17,7 @@ type Props = MainTabScreenProps<'Publicar'>;
 
 export function CreatePromotionScreen({ navigation }: Props) {
   const { markets } = useMarkets();
+  const { departments } = useDepartments();
   const {
     uri: imageUri,
     picking,
@@ -29,6 +32,7 @@ export function CreatePromotionScreen({ navigation }: Props) {
   const [price, setPrice] = useState('');
   const [originalPrice, setOriginalPrice] = useState('');
   const [marketId, setMarketId] = useState<string | null>(null);
+  const [departmentId, setDepartmentId] = useState<string | null>(null);
 
   async function handleSubmit() {
     const ok = await submit({
@@ -37,6 +41,7 @@ export function CreatePromotionScreen({ navigation }: Props) {
       price: Number(price.replace(',', '.')),
       originalPrice: Number(originalPrice.replace(',', '.')),
       marketId: marketId ?? '',
+      departmentId: departmentId ?? '',
       imageUri: imageUri ?? '',
     });
 
@@ -46,6 +51,7 @@ export function CreatePromotionScreen({ navigation }: Props) {
       setPrice('');
       setOriginalPrice('');
       setMarketId(null);
+      setDepartmentId(null);
       resetImage();
       navigation.navigate('Home');
     }
@@ -95,6 +101,7 @@ export function CreatePromotionScreen({ navigation }: Props) {
         keyboardType="decimal-pad"
       />
       <MarketSelect markets={markets} value={marketId} onChange={setMarketId} />
+      <DepartmentSelect departments={departments} value={departmentId} onChange={setDepartmentId} />
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 

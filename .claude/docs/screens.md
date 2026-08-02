@@ -30,9 +30,16 @@ redefinição. O usuário redefine no navegador e volta para logar manualmente
 
 ### FeedScreen — "Home"
 **Rota**: `Home` · **Arquivo**: `src/screens/feed/FeedScreen.tsx`
-**Objetivo**: descobrir promoções ativas. Lista paginada (mais recentes
-primeiro) com busca full-text integrada ao cabeçalho.
-**Dados**: `usePromotions` (`useInfiniteQuery`, páginas de 20).
+**Objetivo**: descobrir promoções ativas. Lista paginada com busca full-text,
+filtro por mercado + ordenação (mais recente/mais confirmado) via
+`FilterModal`, e chips de departamento (`DepartmentChips`: Todas, Alimentos,
+Bebidas, Higiene, Limpeza, Açougue, Hortifruti). Cabeçalho tem logotipo
+bicolor ("Ofert" branco + "aki" laranja) e 3 ícones à direita — troféu
+(Ranking), sino (Alertas, com bolinha quando há notificação não lida) e
+perfil (Perfil) — atalho pras mesmas telas já acessíveis pelas abas de baixo.
+**Dados**: `usePromotions` (`useInfiniteQuery`, páginas de 20, aceita
+`departmentId`/`marketId`/`sort`), `useDepartments`, `useMarkets`,
+`useNotifications` (só `unreadCount`, sem query nova — cache compartilhado).
 **Estados**: skeleton (`PromotionCardSkeleton`), vazio (`EmptyState`), erro com
 retry (`ErrorState`), pull-to-refresh, paginação ao chegar no fim.
 
@@ -48,11 +55,13 @@ some quando não há nenhuma economia registrada no mês.
 ### CreatePromotionScreen — "Publicar"
 **Rota**: `Publicar` (botão central da tab bar)
 **Objetivo**: publicar uma promoção — foto tirada na hora pela câmera, título,
-descrição, preço, **valor sem promoção** (obrigatório, precisa ser ≥ preço) e
-mercado (`MarketSelect`). Categoria "Mercado" é atribuída automaticamente.
+descrição, preço, **valor sem promoção** (obrigatório, precisa ser ≥ preço),
+mercado (`MarketSelect`) e **departamento** (`DepartmentSelect`, obrigatório —
+Alimentos/Bebidas/Higiene/Limpeza/Açougue/Hortifruti). Categoria "Mercado"
+(tabela `categories`, eixo diferente) continua atribuída automaticamente.
 Botão de foto abre a câmera direto (`launchCameraAsync`), não a galeria — ver
 `.claude/memory/decisions.md`.
-**Dados**: `useMarkets`, `useImageUpload` (Storage), `useCreatePromotion`.
+**Dados**: `useMarkets`, `useDepartments`, `useImageUpload` (Storage), `useCreatePromotion`.
 **Estados**: validação por campo (inclui "valor sem promoção não pode ser
 menor que o preço"), permissão de câmera negada (mensagem explicando o
 motivo), upload em progresso, erro de envio.

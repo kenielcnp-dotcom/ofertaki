@@ -49,6 +49,7 @@ export function useCreatePromotion() {
       user_id: session.user.id,
       category_id: category.id,
       market_id: parsed.data.marketId,
+      department_id: parsed.data.departmentId,
       title: parsed.data.title,
       description: parsed.data.description,
       price: parsed.data.price,

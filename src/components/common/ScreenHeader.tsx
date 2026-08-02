@@ -9,6 +9,8 @@ import { typography } from '../../theme/typography';
 
 type ScreenHeaderProps = {
   title: string;
+  /** Substitui o título por um nó customizado (ex: logotipo bicolor). `title` continua obrigatório para acessibilidade. */
+  titleNode?: ReactNode;
   subtitle?: string;
   right?: ReactNode;
   /** Cabeçalho verde de destaque (Home). Caso contrário, fundo claro. */
@@ -16,7 +18,7 @@ type ScreenHeaderProps = {
   children?: ReactNode;
 };
 
-export function ScreenHeader({ title, subtitle, right, tone = 'light', children }: ScreenHeaderProps) {
+export function ScreenHeader({ title, titleNode, subtitle, right, tone = 'light', children }: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const isBrand = tone === 'brand';
@@ -32,7 +34,9 @@ export function ScreenHeader({ title, subtitle, right, tone = 'light', children 
       {isFocused ? <StatusBar style={isBrand ? 'light' : 'dark'} /> : null}
       <View style={styles.row}>
         <View style={styles.texts}>
-          <Text style={[typography.title, isBrand ? styles.titleBrand : styles.titleLight]}>{title}</Text>
+          {titleNode ?? (
+            <Text style={[typography.title, isBrand ? styles.titleBrand : styles.titleLight]}>{title}</Text>
+          )}
           {subtitle ? (
             <Text style={[typography.caption, isBrand ? styles.subtitleBrand : styles.subtitleLight]}>
               {subtitle}

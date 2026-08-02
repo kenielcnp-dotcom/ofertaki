@@ -3,6 +3,24 @@
 > Histórico de mudanças relevantes no projeto. Formato: mais recente no topo.
 > O detalhe de cada decisão fica em `decisions.md`.
 
+## [2026-08-02] Cabeçalho da Home: logotipo, sino/perfil, filtro e departamentos
+
+- Migration `0018`: tabela `departments` (Alimentos, Bebidas, Higiene,
+  Limpeza, Açougue, Hortifruti) + `promotions.department_id` (nullable) —
+  eixo diferente de `categories`, ver `decisions.md`.
+- `CreatePromotionScreen`: novo campo obrigatório "Departamento"
+  (`DepartmentSelect`, mesmo padrão do `MarketSelect`).
+- `FeedScreen`: logotipo bicolor ("Ofert" branco + "aki" laranja via
+  `ScreenHeader`'s nova prop `titleNode`); `DepartmentChips` filtra a Home
+  por departamento; botão de filtro (funil) abre `FilterModal` — filtra por
+  mercado e ordena por mais recente/mais confirmado; ícones de sino
+  (Alertas, com bolinha de não lida) e perfil (Perfil) somados ao troféu já
+  existente no header — duplicam as abas de baixo de propósito.
+- `promotions.service.ts`/`usePromotions.ts`: `list()` ganha `marketId`,
+  `departmentId`, `sort` (`'recent' | 'confirmed'`); `queryKey` inclui os
+  novos filtros pra não servir página em cache errada.
+- Sem `eas build`/`eas update` disparado — a pedido do usuário.
+
 ## [2026-08-02] Card de promoção redesenhado + avaliação + oferta quente + salvar
 
 - Migration `0017`: tabela `ratings` (1-5 estrelas, um voto por usuário,

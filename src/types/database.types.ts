@@ -113,6 +113,33 @@ export type Database = {
           },
         ]
       }
+      departments: {
+        Row: {
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          icon: string
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string
@@ -345,6 +372,7 @@ export type Database = {
           comments_count: number
           confirmations_count: number
           created_at: string
+          department_id: string | null
           description: string | null
           expires_at: string | null
           id: string
@@ -367,6 +395,7 @@ export type Database = {
           comments_count?: number
           confirmations_count?: number
           created_at?: string
+          department_id?: string | null
           description?: string | null
           expires_at?: string | null
           id?: string
@@ -389,6 +418,7 @@ export type Database = {
           comments_count?: number
           confirmations_count?: number
           created_at?: string
+          department_id?: string | null
           description?: string | null
           expires_at?: string | null
           id?: string
@@ -411,6 +441,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotions_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
           {

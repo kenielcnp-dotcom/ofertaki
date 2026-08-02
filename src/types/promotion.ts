@@ -8,6 +8,7 @@ export type Comment = Database['public']['Tables']['comments']['Row'];
 export type ListaCompraItem = Database['public']['Tables']['lista_compras']['Row'];
 export type ListaCompraInsert = Database['public']['Tables']['lista_compras']['Insert'];
 export type Market = Database['public']['Tables']['mercados']['Row'];
+export type Department = Database['public']['Tables']['departments']['Row'];
 export type Notification = Database['public']['Tables']['notifications']['Row'];
 export type Report = Database['public']['Tables']['reports']['Row'];
 export type ReportReason = 'expired' | 'fake' | 'wrong_price' | 'inappropriate' | 'other';

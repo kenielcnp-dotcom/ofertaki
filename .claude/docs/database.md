@@ -1,7 +1,7 @@
 # Banco de Dados
 
 Supabase (Postgres). A **fonte da verdade do schema são as migrations** em
-`supabase/migrations/` (`0001`–`0017`) — nunca alterar o banco só pelo
+`supabase/migrations/` (`0001`–`0018`) — nunca alterar o banco só pelo
 dashboard. Os tipos TypeScript em `src/types/database.types.ts` são **gerados**
 (`supabase gen types typescript`), não editados à mão.
 
@@ -10,8 +10,9 @@ dashboard. Os tipos TypeScript em `src/types/database.types.ts` são **gerados**
 | Tabela | Papel |
 |---|---|
 | `profiles` | perfil do usuário, criado por trigger no signup |
-| `categories` | categorias de promoção (hoje só "Mercado" em uso) |
+| `categories` | tipo de estabelecimento (hoje só "Mercado" em uso, nunca exposta em UI) |
 | `mercados` | supermercados (fonte do dropdown "Loja") |
+| `departments` | departamento/seção do supermercado (fonte dos chips e do dropdown "Departamento") |
 | `promotions` | promoções publicadas |
 | `likes` | curtidas em promoção |
 | `comments` | comentários em promoção |
@@ -27,8 +28,16 @@ dashboard. Os tipos TypeScript em `src/types/database.types.ts` são **gerados**
 **`profiles`** — `id` (= `auth.users.id`), `username`, `display_name`,
 `avatar_url`, `bio`, `reputation_score`, `role`, `is_banned`, timestamps.
 
+**`departments`** — `id`, `name`, `slug`, `icon` (nome do ícone Ionicons),
+`sort_order`, `is_active`. Seed fixo: Alimentos, Bebidas, Higiene, Limpeza,
+Açougue, Hortifruti (migration `0018`). Eixo diferente de `categories` —
+`categories` é tipo de estabelecimento (Mercado/Farmácia/...), `departments`
+é seção **dentro** do supermercado.
+
 **`promotions`** — `id`, `user_id` → `profiles`, `market_id` → `mercados`,
-`category_id` → `categories`, `title`, `description`, `price`,
+`category_id` → `categories`, `department_id` → `departments` (**nullable** —
+promoções anteriores à migration `0018` não têm valor; obrigatório só no
+formulário de publicação, não no banco), `title`, `description`, `price`,
 `original_price` (valor sem a promoção, obrigatório, `check (original_price
 >= price)` — migration `0016`), `image_url`, `expires_at`, `status`,
 contadores (`likes_count`, `comments_count`, `confirmations_count`,

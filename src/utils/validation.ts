@@ -25,6 +25,7 @@ export const createPromotionSchema = z
     price: z.coerce.number().positive('Informe um preço válido'),
     originalPrice: z.coerce.number().positive('Informe o valor sem promoção'),
     marketId: z.string().uuid('Selecione o mercado'),
+    departmentId: z.string().uuid('Selecione o departamento'),
     imageUri: z.string().min(1, 'A foto da promoção é obrigatória'),
   })
   .refine((data) => data.originalPrice >= data.price, {

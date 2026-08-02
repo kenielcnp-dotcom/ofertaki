@@ -13,6 +13,38 @@ foram tomadas. Formato por entrada:
 
 ---
 
+## [2026-08-02] Cabeçalho da Home: departamentos reais em vez de reaproveitar `categories`
+
+**Contexto**: o usuário mandou um modelo de header com chips "Alimentos /
+Bebidas / Higiene / Limpeza / Açougue / Hortifruti" e pediu categorização de
+verdade (escolher departamento ao publicar + filtrar a Home por ele). Já
+existia uma tabela `categories` (Mercado/Farmácia/Eletrônicos/Casa/Outros),
+mas ela representa **tipo de estabelecimento** — sempre fixada em "Mercado"
+no MVP, nunca exposta em UI (a pendência "Filtro por categoria na Home" do
+`roadmap.md` era sobre essa mesma tabela).
+
+**Decisão**: tabela nova `departments` (migration `0018`), eixo diferente —
+seção **dentro** do supermercado, não tipo de estabelecimento. `categories`
+fica intocada. `promotions.department_id` é **nullable** (promoções antigas
+não têm valor correto pra backfill); obrigatório só no formulário via `zod`,
+mesmo padrão do `originalPrice`.
+
+**Alternativas consideradas**: reaproveitar/repopular `categories` com os 6
+departamentos — descartada porque misturaria dois conceitos diferentes
+(tipo de loja vs. seção de produto) na mesma tabela, e `category_id`
+continua sendo usado (fixo em "Mercado") pelo fluxo de publicação existente.
+
+**Consequências**: resolve a pendência do `roadmap.md` sobre filtro de
+categoria — mas para departamentos, não para a `categories` original (essa
+continua igual, ainda fora de escopo).
+
+## [2026-08-02] Sino e perfil duplicados no header da Home
+
+**Decisão**: os ícones de notificações e perfil aparecem tanto no header da
+Home quanto nas abas de baixo (Alertas, Perfil) — duplicação intencional,
+pedida explicitamente pelo usuário ao revisar a prévia. O troféu de ranking
+que já estava no header continua, não foi substituído.
+
 ## [2026-08-02] Card de promoção elaborado: avaliação, oferta quente e salvar
 
 **Contexto**: o usuário mandou um modelo de card bem mais rico que o atual e
