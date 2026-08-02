@@ -155,6 +155,7 @@ export type Database = {
           id: string
           is_purchased: boolean
           promotion_id: string | null
+          purchased_at: string | null
           text: string | null
           user_id: string
         }
@@ -163,6 +164,7 @@ export type Database = {
           id?: string
           is_purchased?: boolean
           promotion_id?: string | null
+          purchased_at?: string | null
           text?: string | null
           user_id: string
         }
@@ -171,6 +173,7 @@ export type Database = {
           id?: string
           is_purchased?: boolean
           promotion_id?: string | null
+          purchased_at?: string | null
           text?: string | null
           user_id?: string
         }
@@ -347,6 +350,7 @@ export type Database = {
           image_url: string
           likes_count: number
           market_id: string
+          original_price: number
           price: number
           reports_count: number
           search_vector: unknown
@@ -366,6 +370,7 @@ export type Database = {
           image_url: string
           likes_count?: number
           market_id: string
+          original_price: number
           price: number
           reports_count?: number
           search_vector?: unknown
@@ -385,6 +390,7 @@ export type Database = {
           image_url?: string
           likes_count?: number
           market_id?: string
+          original_price?: number
           price?: number
           reports_count?: number
           search_vector?: unknown

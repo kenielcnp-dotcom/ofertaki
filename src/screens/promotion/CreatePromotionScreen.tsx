@@ -27,6 +27,7 @@ export function CreatePromotionScreen({ navigation }: Props) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [originalPrice, setOriginalPrice] = useState('');
   const [marketId, setMarketId] = useState<string | null>(null);
 
   async function handleSubmit() {
@@ -34,6 +35,7 @@ export function CreatePromotionScreen({ navigation }: Props) {
       title,
       description: description || undefined,
       price: Number(price.replace(',', '.')),
+      originalPrice: Number(originalPrice.replace(',', '.')),
       marketId: marketId ?? '',
       imageUri: imageUri ?? '',
     });
@@ -42,6 +44,7 @@ export function CreatePromotionScreen({ navigation }: Props) {
       setTitle('');
       setDescription('');
       setPrice('');
+      setOriginalPrice('');
       setMarketId(null);
       resetImage();
       navigation.navigate('Home');
@@ -82,6 +85,13 @@ export function CreatePromotionScreen({ navigation }: Props) {
         value={price}
         onChangeText={setPrice}
         placeholder="Ex: 19,90"
+        keyboardType="decimal-pad"
+      />
+      <Input
+        label="Valor sem promoção (R$)"
+        value={originalPrice}
+        onChangeText={setOriginalPrice}
+        placeholder="Ex: 24,90"
         keyboardType="decimal-pad"
       />
       <MarketSelect markets={markets} value={marketId} onChange={setMarketId} />

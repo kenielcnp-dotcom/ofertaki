@@ -3,7 +3,9 @@ import type { ListaCompraInsert, ListaCompraItem, Promotion } from '../types/pro
 
 export type ListaCompraWithPromotion = ListaCompraItem & {
   promotions:
-    | (Pick<Promotion, 'id' | 'title' | 'image_url' | 'price'> & { mercados: { name: string } | null })
+    | (Pick<Promotion, 'id' | 'title' | 'image_url' | 'price' | 'original_price'> & {
+        mercados: { name: string } | null;
+      })
     | null;
 };
 
@@ -11,7 +13,7 @@ export const listaComprasService = {
   async list(userId: string) {
     const result = await supabase
       .from('lista_compras')
-      .select('*, promotions (id, title, image_url, price, mercados (name))')
+      .select('*, promotions (id, title, image_url, price, original_price, mercados (name))')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     return { ...result, data: result.data as ListaCompraWithPromotion[] | null };

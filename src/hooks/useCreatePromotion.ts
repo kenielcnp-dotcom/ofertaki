@@ -52,6 +52,7 @@ export function useCreatePromotion() {
       title: parsed.data.title,
       description: parsed.data.description,
       price: parsed.data.price,
+      original_price: parsed.data.originalPrice,
       image_url: imageUrl,
     });
 

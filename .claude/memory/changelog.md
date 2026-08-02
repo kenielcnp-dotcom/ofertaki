@@ -10,6 +10,19 @@
   ambientes (`development`, `preview`, `production`), visibilidade
   `plaintext`. Confirmado com `eas env:list`.
 
+## [2026-08-01] Valor sem promoção + painel de economia mensal
+
+- Migration `0016`: `promotions.original_price` (obrigatório, `check
+  (original_price >= price)`, com backfill das linhas existentes) e
+  `lista_compras.purchased_at` (mantido por trigger, zera ao desmarcar
+  "comprado", `now()` ao marcar).
+- `CreatePromotionScreen`: novo campo "Valor sem promoção (R$)"; validação
+  bloqueia se for menor que o preço.
+- `ListaScreen`: novo `SavingsPanel` no topo, com o total economizado no mês
+  (soma de `original_price - price` das promoções compradas) e a contagem —
+  calculado em memória em `useListaCompras` a partir dos dados já buscados,
+  sem query nova.
+
 ## [2026-08-01] Projeto EAS criado
 
 - `eas login` + `eas build:configure` rodados: `extra.eas.projectId` e `owner`

@@ -39,19 +39,23 @@ retry (`ErrorState`), pull-to-refresh, paginação ao chegar no fim.
 ### ListaScreen — "Lista"
 **Rota**: `Lista` · **Objetivo**: lista de compras pessoal e privada.
 Itens vindos de uma promoção **ou** de texto livre; checkbox "comprado" com
-`hitSlop` para alvo de toque acessível.
-**Dados**: `useListaCompras`.
+`hitSlop` para alvo de toque acessível. Mostra `SavingsPanel` no topo (soma do
+`original_price - price` das promoções marcadas como compradas neste mês) —
+some quando não há nenhuma economia registrada no mês.
+**Dados**: `useListaCompras` (inclui `monthlySavings` derivado).
 **Estados**: skeleton, vazio, erro com retry.
 
 ### CreatePromotionScreen — "Publicar"
 **Rota**: `Publicar` (botão central da tab bar)
 **Objetivo**: publicar uma promoção — foto tirada na hora pela câmera, título,
-descrição, preço e mercado (`MarketSelect`). Categoria "Mercado" é atribuída
-automaticamente. Botão de foto abre a câmera direto (`launchCameraAsync`), não
-a galeria — ver `.claude/memory/decisions.md`.
+descrição, preço, **valor sem promoção** (obrigatório, precisa ser ≥ preço) e
+mercado (`MarketSelect`). Categoria "Mercado" é atribuída automaticamente.
+Botão de foto abre a câmera direto (`launchCameraAsync`), não a galeria — ver
+`.claude/memory/decisions.md`.
 **Dados**: `useMarkets`, `useImageUpload` (Storage), `useCreatePromotion`.
-**Estados**: validação por campo, permissão de câmera negada (mensagem
-explicando o motivo), upload em progresso, erro de envio.
+**Estados**: validação por campo (inclui "valor sem promoção não pode ser
+menor que o preço"), permissão de câmera negada (mensagem explicando o
+motivo), upload em progresso, erro de envio.
 
 ### NotificationsScreen — "Alertas"
 **Rota**: `Notificacoes` · **Objetivo**: ver quem interagiu com suas promoções.

@@ -179,6 +179,33 @@ uma foto já existente da galeria não tem mais essa opção nesta tela.
 
 ---
 
+## Valor sem promoção obrigatório; painel de economia mensal na Lista
+
+**Contexto**: pedido do usuário para calcular quanto o usuário economiza
+comprando pelo Ofertaki. Sem um "preço normal" registrado, não dá pra saber a
+diferença — só o `price` da promoção existia.
+
+**Decisão**: `promotions.original_price` (migration `0016`) é **obrigatório**
+na publicação (`check (original_price >= price)`), decisão explícita do
+usuário para que o painel de economia reflita 100% das compras confirmadas,
+sem itens de fora da conta por falta de dado. `lista_compras.purchased_at`
+(mesma migration) é mantido por trigger, não pelo client, para o painel poder
+filtrar "este mês" de forma confiável. O cálculo em si
+(`useListaCompras.monthlySavings`) é derivado em memória a partir dos dados
+que a tela já busca — não criou RPC nem query nova.
+
+**Alternativas consideradas**: campo opcional — descartado pelo usuário
+porque deixaria o painel subestimando a economia real sempre que alguém não
+preenchesse; calcular via RPC/view no banco — descartado por enquanto porque
+o volume de itens por usuário é pequeno o suficiente para computar no client
+sem custo perceptível (revisitar se a lista de compras crescer muito).
+
+**Consequências**: publicar fica com mais um campo obrigatório (mais fricção
+no fluxo), mas o painel de economia é sempre uma soma exata do que foi
+confirmado como comprado, sem excluir itens.
+
+---
+
 ## Projeto EAS sob a conta de time; sem `RECORD_AUDIO`
 
 **Contexto**: ao rodar `eas login` + `eas build:configure`, o `app.json` ganhou

@@ -1,6 +1,13 @@
+import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { listaComprasService } from '../services/lista_compras.service';
 import { useAuthContext } from '../contexts/AuthContext';
+
+function isThisMonth(isoDate: string) {
+  const date = new Date(isoDate);
+  const now = new Date();
+  return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+}
 
 export function useListaCompras() {
   const { session } = useAuthContext();
@@ -58,11 +65,25 @@ export function useListaCompras() {
     onSuccess: invalidate,
   });
 
+  const monthlySavings = useMemo(() => {
+    const items = listQuery.data ?? [];
+    return items.reduce(
+      (acc, item) => {
+        if (!item.is_purchased || !item.purchased_at || !item.promotions) return acc;
+        if (!isThisMonth(item.purchased_at)) return acc;
+        const saved = item.promotions.original_price - item.promotions.price;
+        return { total: acc.total + saved, count: acc.count + 1 };
+      },
+      { total: 0, count: 0 }
+    );
+  }, [listQuery.data]);
+
   return {
     items: listQuery.data ?? [],
     loading: listQuery.isLoading,
     isError: listQuery.isError,
     refetch: listQuery.refetch,
+    monthlySavings,
     addItem,
     addTextItem,
     removeItem,

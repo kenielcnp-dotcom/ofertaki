@@ -1,7 +1,7 @@
 # Banco de Dados
 
 Supabase (Postgres). A **fonte da verdade do schema são as migrations** em
-`supabase/migrations/` (`0001`–`0015`) — nunca alterar o banco só pelo
+`supabase/migrations/` (`0001`–`0016`) — nunca alterar o banco só pelo
 dashboard. Os tipos TypeScript em `src/types/database.types.ts` são **gerados**
 (`supabase gen types typescript`), não editados à mão.
 
@@ -27,16 +27,19 @@ dashboard. Os tipos TypeScript em `src/types/database.types.ts` são **gerados**
 `avatar_url`, `bio`, `reputation_score`, `role`, `is_banned`, timestamps.
 
 **`promotions`** — `id`, `user_id` → `profiles`, `market_id` → `mercados`,
-`category_id` → `categories`, `title`, `description`, `price`, `image_url`,
-`expires_at`, `status`, contadores (`likes_count`, `comments_count`,
-`confirmations_count`, `reports_count`), `search_vector` (`tsvector`),
-timestamps.
+`category_id` → `categories`, `title`, `description`, `price`,
+`original_price` (valor sem a promoção, obrigatório, `check (original_price
+>= price)` — migration `0016`), `image_url`, `expires_at`, `status`,
+contadores (`likes_count`, `comments_count`, `confirmations_count`,
+`reports_count`), `search_vector` (`tsvector`), timestamps.
 
 **`reports`** — `id`, `promotion_id`, `user_id`, `reason`
 (`expired` | `fake` | `wrong_price` | `inappropriate` | `other`), `details`.
 
 **`lista_compras`** — item da lista; `promotion_id` é **opcional** (o item pode
-ser texto livre), com flag de "comprado".
+ser texto livre), com flag de "comprado" (`is_purchased`) e `purchased_at`
+(quando foi marcado como comprado — migration `0016`, mantido por trigger,
+não pelo cliente; usado pelo painel de economia mensal da `ListaScreen`).
 
 ## Relações
 
@@ -69,6 +72,10 @@ vive aqui:
 - **Funções `SECURITY DEFINER`**: todas com `REVOKE EXECUTE`, exceto
   `get_monthly_ranking`, que é pública de propósito. `set_updated_at` tem
   `search_path` fixo.
+- **`lista_compras.purchased_at`**: mantido por trigger (`0016`), não pelo
+  cliente — zera quando `is_purchased` volta a `false`, marca `now()` quando
+  vira `true`. Evita depender do relógio do dispositivo ou do client lembrar
+  de limpar ao desmarcar.
 
 ## Storage
 

@@ -82,6 +82,14 @@ destacada.
 Dropdown de mercado ("Loja"): campo pressionável que abre um modal com a lista
 de `mercados`. Suporta `error`.
 
+## `src/components/lista/`
+
+### SavingsPanel
+Card de destaque no topo da `ListaScreen` com o total economizado no mês
+(`original_price - price` somado das promoções compradas) e a contagem de
+compras. Props `total`/`count`; retorna `null` quando `count === 0` (sem
+economia registrada ainda no mês, evita mostrar "R$ 0,00" vazio).
+
 ## `src/components/auth/`
 
 ### AuthHeader

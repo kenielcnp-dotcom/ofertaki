@@ -5,19 +5,18 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { ErrorState } from '../../components/common/ErrorState';
 import { Input } from '../../components/common/Input';
 import { Skeleton } from '../../components/common/Skeleton';
+import { SavingsPanel } from '../../components/lista/SavingsPanel';
 import { useListaCompras } from '../../hooks/useListaCompras';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
+import { formatPrice } from '../../utils/formatters';
 import type { MainTabScreenProps } from '../../navigation/types';
 
 type Props = MainTabScreenProps<'Lista'>;
 
-function formatPrice(price: number) {
-  return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
 export function ListaScreen({ navigation }: Props) {
-  const { items, loading, isError, refetch, addTextItem, setPurchased, removeItem } = useListaCompras();
+  const { items, loading, isError, refetch, monthlySavings, addTextItem, setPurchased, removeItem } =
+    useListaCompras();
   const [newItemText, setNewItemText] = useState('');
 
   function handleAddTextItem() {
@@ -29,6 +28,11 @@ export function ListaScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      {monthlySavings.count > 0 ? (
+        <View style={styles.panelWrapper}>
+          <SavingsPanel total={monthlySavings.total} count={monthlySavings.count} />
+        </View>
+      ) : null}
       <View style={styles.form}>
         <Input
           label="Novo item"
@@ -118,6 +122,7 @@ export function ListaScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  panelWrapper: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
   form: {
     padding: spacing.lg,
     paddingBottom: 0,
