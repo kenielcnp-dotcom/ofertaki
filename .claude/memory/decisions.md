@@ -45,6 +45,39 @@ um teste de tela for realmente necessário.
 
 ---
 
+## [2026-08-02] Lista: checkbox + "Remover" viram um botão só ("Aproveitei essa oferta")
+
+**Contexto**: o usuário mandou uma referência (botão laranja "Aproveitei essa
+oferta" com ícone de check) pedindo pra unificar as duas ações da linha do
+item — checkbox de "comprado" e link "Remover" — numa só, que faz as duas
+coisas ao mesmo tempo ("remove e joga no painel").
+
+**Decisão**: **"remover" não é `DELETE`** — o item continua existindo
+(`is_purchased = true`), só sai da `FlatList` de pendentes (que agora filtra
+`!is_purchased`) e passa a aparecer no histórico do `SavingsPanel`. Ler
+"remover" como exclusão de banco quebraria o pedido seguinte da mesma frase
+("histórico das promoções do mês") — não sobraria dado pra mostrar. O botão
+muda de texto/cor conforme o item: "Aproveitei essa oferta" (laranja) pra
+item ligado a promoção, "Marcar como comprado" (verde) pra item de texto
+livre, onde "oferta" não faz sentido. Como a linha perdeu o checkbox de
+desmarcar, o histórico do painel virou o único lugar pra desfazer um toque
+errado (`isPurchased: false`) — por isso cada item do histórico tem
+"desfazer".
+
+**Alternativas consideradas**: manter um botão de excluir separado pra item
+pendente que nunca vai ser comprado (ex: adicionado por engano) — não incluído
+nesta rodada porque não estava na referência aprovada pelo usuário; sinalizado
+como possível lacuna, não implementado.
+
+**Consequências**: nenhuma migration nova — o botão só chama o `setPurchased`
+que já existia. Numa lista compartilhada, quando alguém aproveita um item, ele
+some da lista de pendentes de todos os membros (mesma tabela, mesma RLS da
+lista compartilhada). `useListaCompras.monthlySavings` passou a devolver
+`items` (histórico, inclui texto livre) além de `total`/`count` (só itens com
+promoção).
+
+---
+
 ## [2026-08-02] Lista de compras vira compartilhável por código (`listas`/`lista_membros`/`lista_convites`)
 
 **Contexto**: o usuário pediu pra validar a ideia de compartilhar a lista de

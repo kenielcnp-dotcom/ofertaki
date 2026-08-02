@@ -112,8 +112,13 @@ de `department.icon` (nome do Ionicons salvo na tabela).
 Card de destaque no topo da `ListaScreen` com o total economizado no mês
 (`original_price - price` somado das promoções compradas **pelo próprio
 usuário** — sempre individual, mesmo numa lista compartilhada) e a contagem
-de compras. Props `total`/`count`; retorna `null` quando `count === 0` (sem
-economia registrada ainda no mês, evita mostrar "R$ 0,00" vazio).
+de compras. Tem um cantinho de histórico (miniaturas + "ver histórico",
+canto superior direito do card) que expande uma listinha com nome, preço
+(ou "sem preço (item de texto)" pra item sem promoção) e link "desfazer" por
+item — desfazer chama `onUndo(id)`, que volta o item pra lista de pendentes
+(`isPurchased: false`). Props `total`/`count`/`items` (histórico do mês,
+inclui itens de texto livre mesmo sem contar pra economia) `/onUndo`;
+retorna `null` quando `items.length === 0`.
 
 ### ShareListModal
 Bottom sheet (mesmo padrão do `FilterModal`) para compartilhar a lista de

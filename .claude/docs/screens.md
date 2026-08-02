@@ -47,17 +47,26 @@ retry (`ErrorState`), pull-to-refresh, paginação ao chegar no fim.
 **Rota**: `Lista` · **Objetivo**: lista de compras, colaborativa entre quem
 foi convidado (migration `0019` — antes era 100% individual). Cabeçalho com
 botão "pessoas" (abre `ShareListModal`) e bolinha com a contagem de membros
-quando > 1. Itens vindos de uma promoção **ou** de texto livre; checkbox
-"comprado" com `hitSlop` para alvo de toque acessível; cada item mostra quem
-adicionou (ou, se já comprado, quem comprou). Mostra `SavingsPanel` no topo
+quando > 1. Itens vindos de uma promoção **ou** de texto livre; cada item
+mostra quem adicionou. A `FlatList` principal mostra **só os pendentes**
+(`!is_purchased`) — cada linha tem um botão único ("Aproveitei essa oferta",
+laranja, para item ligado a promoção; "Marcar como comprado", verde, para
+item de texto livre) que marca como comprado **e** tira o item da lista de
+pendentes ao mesmo tempo (não existe mais checkbox + "Remover" separados).
+Empty state muda conforme o caso: nunca teve item vs. "Tudo comprado por
+aqui!" quando só falta o que já foi comprado. Mostra `SavingsPanel` no topo
 (soma do `original_price - price` das promoções marcadas como compradas **por
 mim** neste mês — a economia é sempre individual, mesmo numa lista
-compartilhada) — some quando não há nenhuma economia registrada no mês.
-**Dados**: `useListaCompras` (itens + `monthlySavings` + `listaId`),
-`useListaCompartilhada` (membros, código de convite, entrar/remover — usado
-tanto pelo badge do cabeçalho quanto pelo `ShareListModal`). Sincroniza em
-tempo real via Realtime quando outro membro mexe na lista.
-**Estados**: skeleton, vazio, erro com retry.
+compartilhada) — some quando não há nenhum item comprado no mês (nem os sem
+preço, usados só no histórico).
+**Dados**: `useListaCompras` (itens + `monthlySavings.{total,count,items}` +
+`listaId` — `items` do `monthlySavings` inclui compras de texto livre, sem
+entrar no total/contagem de economia), `useListaCompartilhada` (membros,
+código de convite, entrar/remover — usado tanto pelo badge do cabeçalho
+quanto pelo `ShareListModal`). Sincroniza em tempo real via Realtime quando
+outro membro mexe na lista.
+**Estados**: skeleton, vazio (nunca teve item), vazio (tudo comprado), erro
+com retry.
 
 **`ShareListModal`** (`src/components/lista/ShareListModal.tsx`): lista de
 membros (dono pode remover convidados), código de convite de 6 caracteres

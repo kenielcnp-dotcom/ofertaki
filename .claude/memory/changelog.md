@@ -38,6 +38,26 @@
 - **Observação**: para valer de verdade precisa de um novo build nativo (não
   dá pra OTA). Sem `eas build`/`eas update` disparado — a pedido do usuário.
 
+## [2026-08-02] Lista: "Aproveitei essa oferta" substitui checkbox + Remover
+
+- Precedido de uma prévia (Artifact) validando o formato do botão e do
+  histórico antes do código.
+- `src/hooks/useListaCompras.ts`: `monthlySavings` agora devolve
+  `{ total, count, items }` — `items` é o histórico do mês (inclui compras
+  de texto livre, sem preço), `total`/`count` continuam só somando as com
+  promoção (sem mudança de comportamento aí).
+- `src/components/lista/SavingsPanel.tsx`: cantinho de histórico no canto
+  superior direito do card (miniaturas + "ver histórico"), expande pra
+  listinha com nome/preço/"desfazer" por item. Sem lib nova.
+- `src/screens/lista/ListaScreen.tsx`: `FlatList` mostra só pendentes
+  (`!is_purchased`); linha trocou checkbox+"Remover" por um botão único
+  ("Aproveitei essa oferta" pra item de promoção, "Marcar como comprado" pra
+  texto livre) que chama `setPurchased.mutate({ isPurchased: true })`. Novo
+  empty state "Tudo comprado por aqui!" quando só falta o que já foi
+  comprado. Nenhuma migration nova.
+- Testado via Playwright (adicionar item de texto → aproveitar → some da
+  lista pendente e aparece no histórico → desfazer → volta pra pendente).
+
 ## [2026-08-02] Lista de compras compartilhável por código
 
 - Precedido de uma prévia (Artifact) validando a ideia antes de qualquer

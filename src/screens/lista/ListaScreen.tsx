@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../../components/common/Button';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ErrorState } from '../../components/common/ErrorState';
@@ -14,33 +15,24 @@ import { useListaCompartilhada } from '../../hooks/useListaCompartilhada';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
+import { radius } from '../../theme/radius';
+import { typography } from '../../theme/typography';
 import { formatPrice } from '../../utils/formatters';
-import type { ListaCompraWithPromotion } from '../../services/lista_compras.service';
 import type { MainTabScreenProps } from '../../navigation/types';
 
 type Props = MainTabScreenProps<'Lista'>;
 
-function attribution(item: ListaCompraWithPromotion, userId: string | undefined) {
-  if (item.is_purchased && item.purchased_by_profile) {
-    const isSelf = item.purchased_by_profile.id === userId;
-    return { label: `comprado por ${isSelf ? 'você' : item.purchased_by_profile.username}`, self: isSelf };
-  }
-  if (item.added_by) {
-    const isSelf = item.added_by.id === userId;
-    return { label: `adicionado por ${isSelf ? 'você' : item.added_by.username}`, self: isSelf };
-  }
-  return null;
-}
-
 export function ListaScreen({ navigation }: Props) {
   const { session } = useAuthContext();
   const userId = session?.user.id;
-  const { listaId, items, loading, isError, refetch, monthlySavings, addTextItem, setPurchased, removeItem } =
+  const { listaId, items, loading, isError, refetch, monthlySavings, addTextItem, setPurchased } =
     useListaCompras();
   const [newItemText, setNewItemText] = useState('');
   const [shareVisible, setShareVisible] = useState(false);
   const { members, loadingMembers, isDono, code, loadingCode, regenerateCode, removeMember, redeemCode } =
     useListaCompartilhada(listaId, shareVisible);
+
+  const pendingItems = useMemo(() => items.filter((item) => !item.is_purchased), [items]);
 
   function handleAddTextItem() {
     if (!newItemText.trim()) return;
@@ -81,9 +73,14 @@ export function ListaScreen({ navigation }: Props) {
         redeemCode={redeemCode}
       />
 
-      {monthlySavings.count > 0 ? (
+      {monthlySavings.items.length > 0 ? (
         <View style={styles.panelWrapper}>
-          <SavingsPanel total={monthlySavings.total} count={monthlySavings.count} />
+          <SavingsPanel
+            total={monthlySavings.total}
+            count={monthlySavings.count}
+            items={monthlySavings.items}
+            onUndo={(id) => setPurchased.mutate({ id, isPurchased: false })}
+          />
         </View>
       ) : null}
       <View style={styles.form}>
@@ -113,14 +110,23 @@ export function ListaScreen({ navigation }: Props) {
         <ErrorState message="Não foi possível carregar sua lista." onRetry={refetch} />
       ) : items.length === 0 ? (
         <EmptyState message="Sua lista de compras está vazia. Adicione itens manualmente ou a partir do feed de promoções." />
+      ) : pendingItems.length === 0 ? (
+        <EmptyState
+          icon="checkmark-done-outline"
+          title="Tudo comprado por aqui!"
+          message="Você aproveitou tudo que estava na lista. Adicione um item novo ou confira o histórico no painel acima."
+        />
       ) : (
         <FlatList
           contentContainerStyle={styles.listContent}
-          data={items}
+          data={pendingItems}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
             const displayTitle = item.promotions?.title ?? item.text ?? 'Item';
-            const attr = attribution(item, userId);
+            const isPromotionItem = !!item.promotions;
+            const addedBy = item.added_by
+              ? `adicionado por ${item.added_by.id === userId ? 'você' : item.added_by.username}`
+              : null;
             return (
               <Pressable
                 style={styles.row}
@@ -139,33 +145,26 @@ export function ListaScreen({ navigation }: Props) {
                   />
                 ) : null}
                 <View style={styles.info}>
-                  <Text style={[styles.title, item.is_purchased && styles.titlePurchased]} numberOfLines={2}>
+                  <Text style={styles.title} numberOfLines={2}>
                     {displayTitle}
                   </Text>
                   {item.promotions ? (
                     <Text style={styles.price}>{formatPrice(item.promotions.price)}</Text>
                   ) : null}
-                  {attr ? <Text style={styles.attribution}>{attr.label}</Text> : null}
+                  {addedBy ? <Text style={styles.attribution}>{addedBy}</Text> : null}
                 </View>
-                <View style={styles.actions}>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={item.is_purchased ? 'Marcar como não comprado' : 'Marcar como comprado'}
-                    onPress={() => setPurchased.mutate({ id: item.id, isPurchased: !item.is_purchased })}
-                    hitSlop={8}
-                    style={[styles.checkbox, item.is_purchased && styles.checkboxChecked]}
-                  >
-                    {item.is_purchased ? <Text style={styles.checkboxMark}>✓</Text> : null}
-                  </Pressable>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Remover da lista"
-                    onPress={() => removeItem.mutate(item.id)}
-                    hitSlop={8}
-                  >
-                    <Text style={styles.remove}>Remover</Text>
-                  </Pressable>
-                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={isPromotionItem ? `Aproveitei ${displayTitle}` : `Marcar ${displayTitle} como comprado`}
+                  onPress={() => setPurchased.mutate({ id: item.id, isPurchased: true })}
+                  hitSlop={6}
+                  style={[styles.aproveiteiButton, !isPromotionItem && styles.aproveiteiButtonText]}
+                >
+                  <Ionicons name="checkmark-circle" size={15} color={colors.textInverse} />
+                  <Text style={styles.aproveiteiLabel}>
+                    {isPromotionItem ? 'Aproveitei essa oferta' : 'Marcar como comprado'}
+                  </Text>
+                </Pressable>
               </Pressable>
             );
           }}
@@ -208,22 +207,19 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   image: { width: 56, height: 56, borderRadius: 8, backgroundColor: colors.surface },
-  info: { flex: 1, marginLeft: spacing.md },
+  info: { flex: 1, marginLeft: spacing.md, marginRight: spacing.sm },
   title: { color: colors.text, fontWeight: '600' },
-  titlePurchased: { textDecorationLine: 'line-through', color: colors.textMuted },
   price: { color: colors.primary, marginTop: spacing.xs },
   attribution: { color: colors.textSubtle, fontSize: 11, marginTop: 2 },
-  actions: { alignItems: 'center', gap: spacing.sm },
-  checkbox: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: colors.border,
+  aproveiteiButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.secondary,
+    borderRadius: radius.pill,
+    paddingVertical: spacing.sm - 2,
+    paddingHorizontal: spacing.sm + 2,
   },
-  checkboxChecked: { backgroundColor: colors.success, borderColor: colors.success },
-  checkboxMark: { color: colors.primaryText, fontWeight: '700' },
-  remove: { color: colors.danger, fontSize: 12 },
+  aproveiteiButtonText: { backgroundColor: colors.primary },
+  aproveiteiLabel: { ...typography.captionStrong, color: colors.textInverse },
 });

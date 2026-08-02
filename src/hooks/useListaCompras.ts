@@ -102,18 +102,23 @@ export function useListaCompras() {
 
   // Economia continua individual mesmo numa lista compartilhada: só conta o
   // que o próprio usuário marcou como comprado, não a lista inteira.
+  // `items` (histórico do painel) inclui itens de texto livre também — sem
+  // preço, mas ainda assim "comprados este mês"; `total`/`count` só somam
+  // os que têm promoção (é o que dá pra calcular economia de verdade).
   const monthlySavings = useMemo(() => {
     const items = listQuery.data ?? [];
-    return items.reduce(
+    const historyItems = items.filter(
+      (item) => item.is_purchased && item.purchased_by === userId && item.purchased_at && isThisMonth(item.purchased_at)
+    );
+    const { total, count } = historyItems.reduce(
       (acc, item) => {
-        if (!item.is_purchased || !item.purchased_at || !item.promotions) return acc;
-        if (item.purchased_by !== userId) return acc;
-        if (!isThisMonth(item.purchased_at)) return acc;
+        if (!item.promotions) return acc;
         const saved = item.promotions.original_price - item.promotions.price;
         return { total: acc.total + saved, count: acc.count + 1 };
       },
       { total: 0, count: 0 }
     );
+    return { total, count, items: historyItems };
   }, [listQuery.data, userId]);
 
   return {
