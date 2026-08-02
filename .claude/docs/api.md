@@ -32,7 +32,8 @@ Um arquivo por entidade em `src/services/`:
 | `likes.service.ts` | curtir/descurtir |
 | `comments.service.ts` | listar/criar comentário |
 | `confirmations.service.ts` | confirmar/desconfirmar preço |
-| `lista_compras.service.ts` | lista de compras pessoal |
+| `lista_compras.service.ts` | itens da lista de compras (escopo: `lista_id`) |
+| `listas.service.ts` | RPCs de lista compartilhada (criar/entrar/convite/membros) |
 | `ranking.service.ts` | chama a RPC `get_monthly_ranking` |
 | `notifications.service.ts` | listar, marcar como lida, subscription Realtime |
 | `reports.service.ts` | denunciar promoção |

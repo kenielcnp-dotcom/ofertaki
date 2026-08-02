@@ -33,8 +33,11 @@ promoção em grupos de mensagem — só que de um jeito desorganizado e que se 
    preço e mercado (dropdown).
 3. **Interação social** — curtir, comentar e **confirmar** o preço. Não é
    possível curtir ou confirmar a própria promoção.
-4. **Lista de compras pessoal** — privada, com checkbox "comprado". Itens podem
-   vir de uma promoção publicada ou ser texto livre.
+4. **Lista de compras compartilhável** — cada usuário tem uma lista própria,
+   mas pode convidar gente (código de 6 caracteres) pra dividir a mesma
+   lista, com checkbox "comprado". Itens podem vir de uma promoção publicada
+   ou ser texto livre. A economia mensal continua sempre individual, mesmo
+   numa lista compartilhada.
 5. **Gamificação e ranking** — +10 por publicar, +2 por curtida recebida, +1 por
    confirmação recebida. Ranking mensal Top 50 com medalhas, acessível pelo
    Perfil.

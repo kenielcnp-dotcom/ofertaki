@@ -44,13 +44,28 @@ perfil (Perfil) — atalho pras mesmas telas já acessíveis pelas abas de baixo
 retry (`ErrorState`), pull-to-refresh, paginação ao chegar no fim.
 
 ### ListaScreen — "Lista"
-**Rota**: `Lista` · **Objetivo**: lista de compras pessoal e privada.
-Itens vindos de uma promoção **ou** de texto livre; checkbox "comprado" com
-`hitSlop` para alvo de toque acessível. Mostra `SavingsPanel` no topo (soma do
-`original_price - price` das promoções marcadas como compradas neste mês) —
-some quando não há nenhuma economia registrada no mês.
-**Dados**: `useListaCompras` (inclui `monthlySavings` derivado).
+**Rota**: `Lista` · **Objetivo**: lista de compras, colaborativa entre quem
+foi convidado (migration `0019` — antes era 100% individual). Cabeçalho com
+botão "pessoas" (abre `ShareListModal`) e bolinha com a contagem de membros
+quando > 1. Itens vindos de uma promoção **ou** de texto livre; checkbox
+"comprado" com `hitSlop` para alvo de toque acessível; cada item mostra quem
+adicionou (ou, se já comprado, quem comprou). Mostra `SavingsPanel` no topo
+(soma do `original_price - price` das promoções marcadas como compradas **por
+mim** neste mês — a economia é sempre individual, mesmo numa lista
+compartilhada) — some quando não há nenhuma economia registrada no mês.
+**Dados**: `useListaCompras` (itens + `monthlySavings` + `listaId`),
+`useListaCompartilhada` (membros, código de convite, entrar/remover — usado
+tanto pelo badge do cabeçalho quanto pelo `ShareListModal`). Sincroniza em
+tempo real via Realtime quando outro membro mexe na lista.
 **Estados**: skeleton, vazio, erro com retry.
+
+**`ShareListModal`** (`src/components/lista/ShareListModal.tsx`): lista de
+membros (dono pode remover convidados), código de convite de 6 caracteres
+(só o dono vê/gera — `Compartilhar código` via `Share` nativo do RN, sem
+dependência nova) e campo "Entrar com um código" para trocar de lista. Não
+existe deep link real ainda (app sem scheme configurado — ver
+`known-issues.md`), então o convite é sempre um código colado à mão, não um
+link clicável.
 
 ### CreatePromotionScreen — "Publicar"
 **Rota**: `Publicar` (botão central da tab bar)

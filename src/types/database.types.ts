@@ -181,8 +181,10 @@ export type Database = {
           created_at: string
           id: string
           is_purchased: boolean
+          lista_id: string
           promotion_id: string | null
           purchased_at: string | null
+          purchased_by: string | null
           text: string | null
           user_id: string
         }
@@ -190,8 +192,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_purchased?: boolean
+          lista_id: string
           promotion_id?: string | null
           purchased_at?: string | null
+          purchased_by?: string | null
           text?: string | null
           user_id: string
         }
@@ -199,17 +203,33 @@ export type Database = {
           created_at?: string
           id?: string
           is_purchased?: boolean
+          lista_id?: string
           promotion_id?: string | null
           purchased_at?: string | null
+          purchased_by?: string | null
           text?: string | null
           user_id?: string
         }
         Relationships: [
           {
+            foreignKeyName: "lista_compras_lista_id_fkey"
+            columns: ["lista_id"]
+            isOneToOne: false
+            referencedRelation: "listas"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "lista_compras_promotion_id_fkey"
             columns: ["promotion_id"]
             isOneToOne: false
             referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_compras_purchased_by_fkey"
+            columns: ["purchased_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -220,6 +240,99 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      lista_convites: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          id: string
+          lista_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          id?: string
+          lista_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          lista_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lista_convites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_convites_lista_id_fkey"
+            columns: ["lista_id"]
+            isOneToOne: true
+            referencedRelation: "listas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lista_membros: {
+        Row: {
+          created_at: string
+          id: string
+          lista_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lista_id: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lista_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lista_membros_lista_id_fkey"
+            columns: ["lista_id"]
+            isOneToOne: false
+            referencedRelation: "listas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_membros_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listas: {
+        Row: {
+          created_at: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
       }
       mercados: {
         Row: {
@@ -570,10 +683,16 @@ export type Database = {
           username: string
         }[]
       }
+      get_or_create_lista_convite: { Args: never; Returns: string }
+      get_or_create_my_lista: { Args: never; Returns: string }
+      is_lista_dono: { Args: never; Returns: boolean }
+      my_lista_id: { Args: never; Returns: string }
       notify_promotion_author: {
         Args: { p_actor_id: string; p_promotion_id: string; p_type: string }
         Returns: undefined
       }
+      redeem_lista_convite: { Args: { p_code: string }; Returns: string }
+      regenerate_lista_convite: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never

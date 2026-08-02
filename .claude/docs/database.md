@@ -1,7 +1,7 @@
 # Banco de Dados
 
 Supabase (Postgres). A **fonte da verdade do schema são as migrations** em
-`supabase/migrations/` (`0001`–`0018`) — nunca alterar o banco só pelo
+`supabase/migrations/` (`0001`–`0019`) — nunca alterar o banco só pelo
 dashboard. Os tipos TypeScript em `src/types/database.types.ts` são **gerados**
 (`supabase gen types typescript`), não editados à mão.
 
@@ -18,7 +18,10 @@ dashboard. Os tipos TypeScript em `src/types/database.types.ts` são **gerados**
 | `comments` | comentários em promoção |
 | `confirmations` | confirmações de que o preço está correto |
 | `ratings` | avaliação (1-5 estrelas) de uma promoção |
-| `lista_compras` | lista de compras pessoal (privada) |
+| `listas` | entidade "lista de compras" — dono + convidados (migration `0019`) |
+| `lista_membros` | quem pertence a qual lista (dono/convidado); 1 lista por usuário por vez |
+| `lista_convites` | código de convite ativo de uma lista (uso interno, não lida direto pelo client) |
+| `lista_compras` | item de uma lista — colaborativa entre os membros dela |
 | `points_ledger` | lançamentos de pontos (fonte da reputação) |
 | `notifications` | notificações in-app |
 | `reports` | denúncias de promoção |
@@ -53,17 +56,40 @@ qualquer momento, exceto o autor da própria promoção.
 **`reports`** — `id`, `promotion_id`, `user_id`, `reason`
 (`expired` | `fake` | `wrong_price` | `inappropriate` | `other`), `details`.
 
-**`lista_compras`** — item da lista; `promotion_id` é **opcional** (o item pode
-ser texto livre), com flag de "comprado" (`is_purchased`) e `purchased_at`
-(quando foi marcado como comprado — migration `0016`, mantido por trigger,
-não pelo cliente; usado pelo painel de economia mensal da `ListaScreen`).
+**`listas`** — só `id`/`created_at`. De propósito **sem** `owner_id`: quem é
+dono/convidado vive inteiramente em `lista_membros`, pra não duplicar esse
+fato em dois lugares (migration `0019`).
+
+**`lista_membros`** — `lista_id`, `user_id`, `role` (`dono` | `convidado`),
+`unique (user_id)` — cada usuário pertence a **no máximo uma lista por vez**
+(sem suporte a múltiplas listas por usuário; decisão de produto, ver
+`decisions.md`). Todo usuário ganha uma lista própria (como dono) na primeira
+vez que abre a `ListaScreen`, via RPC `get_or_create_my_lista()`.
+
+**`lista_convites`** — `lista_id` (`unique`), `code` (`unique`, 6 caracteres),
+`created_by`. Sem nenhuma RLS policy de select/insert/update para o client —
+só as RPCs abaixo tocam nela; o código sempre chega pelo `return` da função,
+nunca por `select` direto na tabela.
+
+**`lista_compras`** — item de uma lista (`lista_id`, não mais direto a um
+usuário); `user_id` passou a significar **quem adicionou o item**, não mais
+"dono exclusivo". `promotion_id` é **opcional** (o item pode ser texto livre).
+`purchased_by` (migration `0019`) registra quem marcou como comprado —
+existe pra manter a economia mensal **individual** mesmo numa lista
+compartilhada (ver painel em `ListaScreen`). `purchased_at`/`purchased_by`
+são mantidos por trigger (`set_lista_compras_purchased_at`), não pelo
+cliente. Índice único `(lista_id, promotion_id)` evita duas pessoas da mesma
+lista salvarem a mesma promoção duas vezes. `REPLICA IDENTITY FULL` (exigido
+pra eventos de `DELETE` do Realtime carregarem `lista_id`, usado no filtro do
+canal — ver `lista_compras.service.ts`/`useListaCompras.ts`).
 
 ## Relações
 
 - `profiles` 1—N `promotions` (autor)
 - `mercados` 1—N `promotions` · `categories` 1—N `promotions`
 - `promotions` 1—N `likes` / `comments` / `confirmations` / `ratings` / `reports`
-- `profiles` 1—N `lista_compras` / `points_ledger` / `notifications`
+- `profiles` 1—N `points_ledger` / `notifications`
+- `listas` 1—N `lista_membros` / `lista_compras`; `lista_membros`/`lista_compras` N—1 `profiles`
 
 ## Regras aplicadas no banco (não no app)
 
@@ -89,13 +115,25 @@ vive aqui:
   promoção vira `status = 'removed'` por trigger.
 - **Busca**: `search_vector` (`tsvector`) com índice GIN sobre
   `title`/`description`, consultada com `websearch` e config `portuguese`.
-- **Funções `SECURITY DEFINER`**: todas com `REVOKE EXECUTE`, exceto
-  `get_monthly_ranking`, que é pública de propósito. `set_updated_at` tem
-  `search_path` fixo.
+- **Funções `SECURITY DEFINER`**: a maioria tem `REVOKE EXECUTE` (uso só via
+  trigger). As públicas de propósito (`GRANT` explícito pra `authenticated`):
+  `get_monthly_ranking`, e as RPCs de lista compartilhada abaixo.
+  `set_updated_at` tem `search_path` fixo.
 - **`lista_compras.purchased_at`**: mantido por trigger (`0016`), não pelo
   cliente — zera quando `is_purchased` volta a `false`, marca `now()` quando
   vira `true`. Evita depender do relógio do dispositivo ou do client lembrar
-  de limpar ao desmarcar.
+  de limpar ao desmarcar. Desde `0019`, o mesmo trigger também marca/zera
+  `purchased_by` a partir de `auth.uid()`.
+- **Lista compartilhada (`0019`)**: `my_lista_id()`/`is_lista_dono()` são
+  helpers `SECURITY DEFINER` usados **dentro das próprias RLS policies** de
+  `listas`/`lista_membros`/`lista_compras` — evita que a policy precise
+  fazer `EXISTS` na mesma tabela que está protegendo (padrão recomendado
+  pelo Supabase contra recursão de RLS). RPCs públicas:
+  `get_or_create_my_lista()` (cria a lista do usuário na primeira vez),
+  `get_or_create_lista_convite()` / `regenerate_lista_convite()` (só o dono
+  chama), `redeem_lista_convite(code)` (entra numa lista pelo código —
+  **bloqueia** se a lista atual do usuário já tem itens ou outras pessoas,
+  pra nunca abandonar dados em silêncio).
 
 ## Storage
 

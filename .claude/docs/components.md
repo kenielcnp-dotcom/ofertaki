@@ -110,9 +110,18 @@ de `department.icon` (nome do Ionicons salvo na tabela).
 
 ### SavingsPanel
 Card de destaque no topo da `ListaScreen` com o total economizado no mês
-(`original_price - price` somado das promoções compradas) e a contagem de
-compras. Props `total`/`count`; retorna `null` quando `count === 0` (sem
+(`original_price - price` somado das promoções compradas **pelo próprio
+usuário** — sempre individual, mesmo numa lista compartilhada) e a contagem
+de compras. Props `total`/`count`; retorna `null` quando `count === 0` (sem
 economia registrada ainda no mês, evita mostrar "R$ 0,00" vazio).
+
+### ShareListModal
+Bottom sheet (mesmo padrão do `FilterModal`) para compartilhar a lista de
+compras: membros atuais (dono pode remover convidados), código de convite de
+6 caracteres (só visível/gerável pelo dono — `Compartilhar código` via
+`Share` nativo do RN, sem lib nova) e campo "Entrar com um código" pra trocar
+de lista. Componente puramente apresentacional — não busca dados sozinho,
+recebe tudo via props de `ListaScreen` (que chama `useListaCompartilhada`).
 
 ## `src/components/auth/`
 

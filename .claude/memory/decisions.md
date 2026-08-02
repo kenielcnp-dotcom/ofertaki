@@ -13,6 +13,66 @@ foram tomadas. Formato por entrada:
 
 ---
 
+## [2026-08-02] Lista de compras vira compartilhável por código (`listas`/`lista_membros`/`lista_convites`)
+
+**Contexto**: o usuário pediu pra validar a ideia de compartilhar a lista de
+compras com convidados (ex: pessoas da mesma casa), mantendo o painel de
+economia funcionando. Antes de codificar, uma prévia (Artifact) foi montada e
+aprovada com três decisões de produto: (1) economia continua **individual**
+mesmo numa lista compartilhada; (2) convite por **código**, não busca de
+usuário; (3) qualquer convidado **edita de verdade** (adiciona/remove/marca
+comprado), não é "convidado só lê". Isso supersede a decisão antiga "`lista_compras`
+é lista de compras pessoal" — deixa de ser sempre privada, mas continua sendo
+uma lista só (sem suporte a múltiplas listas por usuário, opção rejeitada
+explicitamente em favor de "compartilhada com convidados").
+
+**Decisão** (migration `0019`):
+- Tabela nova `listas` — **de propósito sem `owner_id`**: quem é dono/convidado
+  vive só em `lista_membros` (`lista_id`, `user_id`, `role`,
+  `unique (user_id)`), pra não duplicar esse fato em dois lugares.
+  `unique (user_id)` implica que cada usuário pertence a **no máximo uma
+  lista por vez** — dono da própria ou convidado em uma de outra pessoa.
+- Helpers `SECURITY DEFINER` (`my_lista_id()`, `is_lista_dono()`) usados
+  **dentro das RLS policies** de `listas`/`lista_membros`/`lista_compras` —
+  primeiro caso do projeto de uma policy que precisaria consultar a própria
+  tabela que protege; o helper evita a recursão (padrão recomendado pelo
+  Supabase).
+- `lista_compras.user_id` muda de significado: era "dono exclusivo", passa a
+  ser "quem adicionou o item". `purchased_by` (novo) registra quem marcou
+  como comprado — é o que permite a economia mensal continuar somando só o
+  que **o próprio usuário** comprou, mesmo com itens de outros membros na
+  mesma lista.
+- Convite é um **código de 6 caracteres**, não um link clicável de verdade —
+  o app não tem deep link/scheme configurado ainda (mesma limitação já
+  documentada pro reset de senha), então um link não abriria o app sozinho.
+  `redeem_lista_convite(code)` **bloqueia** a troca de lista se a lista atual
+  do usuário já tem itens ou outras pessoas — nunca abandona dados em
+  silêncio; só deixa trocar quando a lista atual está genuinamente vazia.
+- Só o dono gera/regenera o código e remove convidados (RPCs
+  `get_or_create_lista_convite`/`regenerate_lista_convite` levantam exceção
+  se quem chama não for dono da própria lista atual).
+
+**Alternativas consideradas**:
+- `listas.owner_id` como coluna própria — descartada: `lista_membros.role =
+  'dono'` já é a mesma informação; manter as duas correria risco de
+  divergência sem necessidade.
+- Permitir múltiplas listas por usuário — rejeitada explicitamente pelo
+  usuário ao escolher "compartilhada com convidados" em vez de "múltiplas
+  listas por usuário" numa pergunta direta.
+- Deep link real pro convite — adiado; ver `known-issues.md` (mesma
+  dependência do reset de senha).
+
+**Consequências**: `lista_compras` ganhou `REPLICA IDENTITY FULL` (exigido
+pra eventos de `DELETE` do Realtime carregarem `lista_id`, usado no filtro do
+canal). O índice único de "promoção já está na lista" passou de
+`(user_id, promotion_id)` para `(lista_id, promotion_id)`. Testado
+ponta-a-ponta com dois usuários reais (Playwright, dois `BrowserContext`
+separados): item adicionado por A aparece pra B após entrar com o código,
+compra marcada por B chega em A via Realtime, e o painel de economia de A
+continua correto (não conta a compra de B).
+
+---
+
 ## [2026-08-02] Cabeçalho da Home: departamentos reais em vez de reaproveitar `categories`
 
 **Contexto**: o usuário mandou um modelo de header com chips "Alimentos /
@@ -93,6 +153,11 @@ secundária).
 ---
 
 ## `lista_compras` é lista de compras pessoal, não "salvos"
+
+> **Atualizado em 2026-08-02**: deixou de ser sempre privada — ver decisão
+> "Lista de compras vira compartilhável por código" acima. A parte que
+> continua valendo: é conceitualmente separada de like/comentário/confirmação,
+> e itens podem ser texto livre.
 
 **Contexto**: risco de confundir "salvar promoção" com curtir/confirmar.
 

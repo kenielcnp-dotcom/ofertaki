@@ -3,6 +3,38 @@
 > Histórico de mudanças relevantes no projeto. Formato: mais recente no topo.
 > O detalhe de cada decisão fica em `decisions.md`.
 
+## [2026-08-02] Lista de compras compartilhável por código
+
+- Precedido de uma prévia (Artifact) validando a ideia antes de qualquer
+  código — decisões tomadas: economia continua individual, convite por
+  código (não busca de usuário), qualquer convidado edita de verdade.
+- Migration `0019`: tabelas `listas`, `lista_membros` (`role` dono/convidado,
+  `unique (user_id)` — uma lista por usuário por vez), `lista_convites`
+  (código de 6 caracteres, sem RLS de leitura pro client). `lista_compras`
+  ganhou `lista_id` (substitui `user_id` como escopo de posse — `user_id`
+  passa a significar "quem adicionou") e `purchased_by` (quem marcou como
+  comprado, pra manter a economia individual). `REPLICA IDENTITY FULL` pra
+  Realtime enxergar `lista_id` em eventos de `DELETE`.
+- RPCs novas (`SECURITY DEFINER`, `GRANT` só pra `authenticated`):
+  `get_or_create_my_lista`, `get_or_create_lista_convite`,
+  `regenerate_lista_convite`, `redeem_lista_convite` — a última bloqueia a
+  troca de lista se a atual do usuário já tem itens/outras pessoas.
+- `listas.service.ts` (novo), `lista_compras.service.ts` estendido
+  (`added_by`/`purchased_by_profile` via join com `profiles`),
+  `useListaCompartilhada.ts` (novo hook: membros, código, entrar/remover),
+  `useListaCompras.ts` resolve `listaId` primeiro e assina Realtime por
+  `lista_id` (mesmo padrão de sufixo aleatório de `notifications.service.ts`).
+- `ShareListModal.tsx` (novo componente, mesmo padrão de bottom sheet do
+  `FilterModal`) e `ListaScreen` com botão "pessoas" no cabeçalho + bolinha
+  de contagem de membros + atribuição por item ("adicionado por"/"comprado
+  por"). Compartilhamento do código usa `Share` nativo do RN — sem
+  `expo-clipboard` nem nenhuma lib nova (mudança continua OTA-atualizável).
+- Testado ponta-a-ponta com dois usuários reais via Playwright (dois
+  `BrowserContext`): item de A aparece pra B após o código, compra de B
+  chega em A por Realtime, painel de economia de A não conta a compra de B.
+- Doc: `.claude/docs/database.md`, `screens.md`, `components.md`,
+  `api.md`, `app-overview.md`.
+
 ## [2026-08-02] App fechava ao abrir Notificações
 
 - **Sintoma**: abrir a tela de Alertas fechava o app. Causa: o sino novo no

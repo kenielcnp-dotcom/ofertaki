@@ -4,20 +4,43 @@ import { Button } from '../../components/common/Button';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ErrorState } from '../../components/common/ErrorState';
 import { Input } from '../../components/common/Input';
+import { IconButton } from '../../components/common/IconButton';
+import { ScreenHeader } from '../../components/common/ScreenHeader';
 import { Skeleton } from '../../components/common/Skeleton';
 import { SavingsPanel } from '../../components/lista/SavingsPanel';
+import { ShareListModal } from '../../components/lista/ShareListModal';
 import { useListaCompras } from '../../hooks/useListaCompras';
+import { useListaCompartilhada } from '../../hooks/useListaCompartilhada';
+import { useAuthContext } from '../../contexts/AuthContext';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { formatPrice } from '../../utils/formatters';
+import type { ListaCompraWithPromotion } from '../../services/lista_compras.service';
 import type { MainTabScreenProps } from '../../navigation/types';
 
 type Props = MainTabScreenProps<'Lista'>;
 
+function attribution(item: ListaCompraWithPromotion, userId: string | undefined) {
+  if (item.is_purchased && item.purchased_by_profile) {
+    const isSelf = item.purchased_by_profile.id === userId;
+    return { label: `comprado por ${isSelf ? 'você' : item.purchased_by_profile.username}`, self: isSelf };
+  }
+  if (item.added_by) {
+    const isSelf = item.added_by.id === userId;
+    return { label: `adicionado por ${isSelf ? 'você' : item.added_by.username}`, self: isSelf };
+  }
+  return null;
+}
+
 export function ListaScreen({ navigation }: Props) {
-  const { items, loading, isError, refetch, monthlySavings, addTextItem, setPurchased, removeItem } =
+  const { session } = useAuthContext();
+  const userId = session?.user.id;
+  const { listaId, items, loading, isError, refetch, monthlySavings, addTextItem, setPurchased, removeItem } =
     useListaCompras();
   const [newItemText, setNewItemText] = useState('');
+  const [shareVisible, setShareVisible] = useState(false);
+  const { members, loadingMembers, isDono, code, loadingCode, regenerateCode, removeMember, redeemCode } =
+    useListaCompartilhada(listaId, shareVisible);
 
   function handleAddTextItem() {
     if (!newItemText.trim()) return;
@@ -28,6 +51,36 @@ export function ListaScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <ScreenHeader title="Lista" subtitle="Organize suas compras e economize mais">
+        <View style={styles.headerButtonWrap}>
+          <IconButton
+            icon="people-outline"
+            tone="primary"
+            label="Compartilhar lista"
+            onPress={() => setShareVisible(true)}
+          />
+          {members.length > 1 ? (
+            <View style={styles.memberBadge}>
+              <Text style={styles.memberBadgeText}>{members.length}</Text>
+            </View>
+          ) : null}
+        </View>
+      </ScreenHeader>
+
+      <ShareListModal
+        visible={shareVisible}
+        onClose={() => setShareVisible(false)}
+        currentUserId={userId}
+        members={members}
+        loadingMembers={loadingMembers}
+        isDono={isDono}
+        code={code}
+        loadingCode={loadingCode}
+        regenerateCode={regenerateCode}
+        removeMember={removeMember}
+        redeemCode={redeemCode}
+      />
+
       {monthlySavings.count > 0 ? (
         <View style={styles.panelWrapper}>
           <SavingsPanel total={monthlySavings.total} count={monthlySavings.count} />
@@ -67,6 +120,7 @@ export function ListaScreen({ navigation }: Props) {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
             const displayTitle = item.promotions?.title ?? item.text ?? 'Item';
+            const attr = attribution(item, userId);
             return (
               <Pressable
                 style={styles.row}
@@ -91,6 +145,7 @@ export function ListaScreen({ navigation }: Props) {
                   {item.promotions ? (
                     <Text style={styles.price}>{formatPrice(item.promotions.price)}</Text>
                   ) : null}
+                  {attr ? <Text style={styles.attribution}>{attr.label}</Text> : null}
                 </View>
                 <View style={styles.actions}>
                   <Pressable
@@ -122,6 +177,22 @@ export function ListaScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  headerButtonWrap: { position: 'relative' },
+  memberBadge: {
+    position: 'absolute',
+    top: -3,
+    right: -3,
+    minWidth: 17,
+    height: 17,
+    paddingHorizontal: 3,
+    borderRadius: 9,
+    backgroundColor: colors.secondary,
+    borderWidth: 1.5,
+    borderColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  memberBadgeText: { color: colors.textInverse, fontSize: 10, fontWeight: '700' },
   panelWrapper: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
   form: {
     padding: spacing.lg,
@@ -141,6 +212,7 @@ const styles = StyleSheet.create({
   title: { color: colors.text, fontWeight: '600' },
   titlePurchased: { textDecorationLine: 'line-through', color: colors.textMuted },
   price: { color: colors.primary, marginTop: spacing.xs },
+  attribution: { color: colors.textSubtle, fontSize: 11, marginTop: 2 },
   actions: { alignItems: 'center', gap: spacing.sm },
   checkbox: {
     width: 28,
