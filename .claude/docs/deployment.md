@@ -58,7 +58,15 @@ build nativo a cada mudança de código JS/React.
   `RECORD_AUDIO`) que nada no app usa; removido em 2026-08-01 (ver
   `changelog.md`). Pedir permissão sem uso real levanta bandeira na revisão de
   loja.
-- Ícones adaptativos Android e favicon web já configurados em `assets/`.
+- Ícone (`icon.png`) e o `foregroundImage` do adaptive icon Android usam a
+  logo real (`assets/logo.png`, mesma usada na `WelcomeScreen`) desde
+  2026-08-02; `backgroundColor` do adaptive icon é o verde da marca
+  (`#1A5331`). **Falta**: um `foregroundImage` de verdade (glifo transparente
+  dentro da safe zone do Android) e um `monochromeImage` (ícone temático do
+  Android 13+) — hoje o adaptive icon usa a logo inteira (com fundo já
+  embutido) como foreground, funcional mas não é o ideal; não tem
+  `monochromeImage` configurado (cai no fallback do ícone normal). Favicon web
+  ainda é o placeholder padrão do Expo.
 
 ## Variáveis de ambiente
 

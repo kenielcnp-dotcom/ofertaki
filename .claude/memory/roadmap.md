@@ -8,9 +8,13 @@
 
 - [ ] **Confirmar `com.ofertaki.app`** como bundle id / package definitivo (hoje
       é placeholder) antes de submeter às lojas.
-- [ ] Ficha das lojas: contas Apple Developer / Google Play, ícones,
-      screenshots, política de privacidade (fora do que dá para automatizar
-      aqui).
+- [ ] Ficha das lojas: contas Apple Developer / Google Play, screenshots,
+      política de privacidade (fora do que dá para automatizar aqui).
+- [ ] **Ícone adaptativo Android "de verdade"**: hoje usa a logo inteira (com
+      fundo já embutido) como `foregroundImage`, funcional mas não é o ideal —
+      precisa de um glifo transparente recortado dentro da safe zone, mais um
+      `monochromeImage` (ícone temático do Android 13+). Depende de asset de
+      design, não só de config.
 
 ## A seguir
 

@@ -10,6 +10,16 @@
   ambientes (`development`, `preview`, `production`), visibilidade
   `plaintext`. Confirmado com `eas env:list`.
 
+## [2026-08-02] Logo real no ícone do app
+
+- `assets/icon.png` e `assets/android-icon-foreground.png` trocados pela logo
+  real (`assets/logo.png`, a mesma da `WelcomeScreen`) — antes eram o ícone
+  placeholder padrão do template Expo (seta azul).
+- `android.adaptiveIcon.backgroundColor` virou o verde da marca (`#1A5331`);
+  removidas as referências a `backgroundImage`/`monochromeImage` (ainda
+  placeholder genérico, não fazia sentido manter referenciadas). Pendência
+  registrada em `roadmap.md`.
+
 ## [2026-08-01] EAS Update configurado (OTA)
 
 - `expo-updates` instalado; `eas update:configure` rodado —
