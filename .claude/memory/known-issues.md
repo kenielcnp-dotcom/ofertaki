@@ -15,6 +15,24 @@ Formato por entrada:
 
 ---
 
+## Comandos de config do EAS reintroduzem `RECORD_AUDIO`
+
+**Sintoma**: tanto `eas build:configure` quanto `eas update:configure`
+adicionaram `android.permissions: ["RECORD_AUDIO"]` ao `app.json` sem nada no
+app usar áudio/microfone — a segunda vez, inclusive duplicado.
+
+**Impacto**: nenhum ainda (sempre removido antes de commitar), mas é
+recorrente — qualquer comando de config do EAS rodado no futuro
+(`eas build:configure`, `eas update:configure`, `eas credentials`, etc.) pode
+reintroduzir isso silenciosamente.
+
+**Status**: sem causa raiz confirmada (possivelmente algo no ambiente/cache
+local do EAS CLI, não do projeto). Mitigação atual: **sempre conferir o diff
+de `app.json` depois de qualquer comando `eas ...:configure`** antes de
+commitar; remover `android.permissions` se reaparecer sem motivo.
+
+---
+
 ## Vulnerabilidades do `npm audit` em ferramental de build
 
 **Sintoma**: 12 vulnerabilidades (10 moderate / 2 high) reportadas pelo

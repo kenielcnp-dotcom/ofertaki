@@ -38,6 +38,12 @@
         "projectId": "c4ad1e76-89b1-4cda-b7be-73597d5e3d1e"
       }
     },
-    "owner": "kenieldotcoms-team"
+    "owner": "kenieldotcoms-team",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c4ad1e76-89b1-4cda-b7be-73597d5e3d1e"
+    }
   }
 }

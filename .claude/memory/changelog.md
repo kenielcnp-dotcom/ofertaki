@@ -10,6 +10,20 @@
   ambientes (`development`, `preview`, `production`), visibilidade
   `plaintext`. Confirmado com `eas env:list`.
 
+## [2026-08-01] EAS Update configurado (OTA)
+
+- `expo-updates` instalado; `eas update:configure` rodado —
+  `app.json` ganhou `updates.url` + `runtimeVersion` (`policy: "appVersion"`),
+  `eas.json` ganhou `channel` em cada perfil de build
+  (`development`/`preview`/`production`).
+- Publicar update: `eas update --channel <canal> --message "..."` — atualiza
+  builds já instalados sem gerar `.apk`/`.ipa` novo (só para mudanças de
+  JS/assets; mudança nativa continua exigindo `eas build`).
+- O comando reintroduziu `android.permissions: RECORD_AUDIO` de novo
+  (duplicado); removido. Ver `known-issues.md`.
+- **Builds gerados antes desta configuração** (o APK de `preview` de mais
+  cedo) não recebem OTA — precisam ser substituídos por um build novo.
+
 ## [2026-08-01] Valor sem promoção + painel de economia mensal
 
 - Migration `0016`: `promotions.original_price` (obrigatório, `check

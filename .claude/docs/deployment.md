@@ -1,17 +1,47 @@
 # Deployment
 
-Build e distribuição via **EAS Build** (`eas.json` na raiz).
+Build e distribuição via **EAS Build** (`eas.json` na raiz). Atualizações de
+JS/assets sem gerar build novo via **EAS Update** (mesmo arquivo).
 
 ## Perfis de build (`eas.json`)
 
-| Perfil | Configuração | Uso |
-|---|---|---|
-| `development` | `developmentClient: true`, `distribution: internal` | dev client, desenvolvimento diário |
-| `preview` | `distribution: internal` | build interna para QA antes de release |
-| `production` | `autoIncrement: true` | build enviado às lojas |
+| Perfil | Configuração | Canal de update | Uso |
+|---|---|---|---|
+| `development` | `developmentClient: true`, `distribution: internal` | `development` | dev client, desenvolvimento diário |
+| `preview` | `distribution: internal` | `preview` | build interna para QA antes de release |
+| `production` | `autoIncrement: true` | `production` | build enviado às lojas |
 
 `cli.appVersionSource: "remote"` — o número de build é controlado pelo EAS, não
 pelo `app.json`.
+
+## EAS Update (OTA)
+
+Configurado em 2026-08-01 (`eas update:configure`) para não precisar gerar
+build nativo a cada mudança de código JS/React.
+
+- `expo-updates` instalado; `app.json` ganhou `updates.url` e
+  `runtimeVersion: { policy: "appVersion" }` (a versão de runtime segue
+  `app.json` → `version`; builds com o mesmo `version` conseguem receber a
+  mesma atualização).
+- Cada perfil de build em `eas.json` tem um `channel` (`development` /
+  `preview` / `production`) — o build só recebe updates publicados nesse
+  canal.
+- **Publicar uma atualização**: `eas update --channel <canal> --message
+  "descrição da mudança"`. Ex.: `eas update --channel preview --message "fix:
+  ..."` atualiza instantaneamente (próxima vez que o app abrir/voltar do
+  background) todo build de `preview` já instalado — sem passar pela loja
+  nem gerar `.apk`/`.ipa` novo.
+- **Limite importante**: só funciona pra mudanças de **JS/assets**. Qualquer
+  mudança nativa (nova permissão, novo plugin do Expo, ícone, splash, nome do
+  app, bundle id) exige `eas build` novo — o update não alcança essas
+  mudanças e pode até ficar incompatível se o `runtimeVersion` mudar.
+- **Builds anteriores ao `update:configure`** (ex.: o primeiro APK de
+  `preview` gerado em 2026-08-01) não têm o cliente `expo-updates` embutido —
+  não recebem OTA, só um `eas build` novo os substitui por um que recebe.
+- **Achado ao configurar**: `eas update:configure` reintroduziu
+  `android.permissions: ["RECORD_AUDIO"]` (duplicado) no `app.json`, mesmo
+  achado da migration EAS anterior — removido de novo. Ver
+  `.claude/memory/known-issues.md`.
 
 ## Configuração do app (`app.json`)
 
