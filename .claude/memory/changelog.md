@@ -3,6 +3,31 @@
 > Histórico de mudanças relevantes no projeto. Formato: mais recente no topo.
 > O detalhe de cada decisão fica em `decisions.md`.
 
+## [2026-08-03] Wizard "Publicar promoção" com IA (Claude Vision)
+
+- `CreatePromotionScreen` deixou de ser um formulário único e virou um
+  wizard de 3 passos (`Stepper` novo em `components/common/`): Foto →
+  Informações → Publicar, em `screens/promotion/steps/`.
+- Primeira Edge Function do projeto: `supabase/functions/analyze-promotion-image`
+  (migration `0020`, colunas `promotions.ai_assisted`/`ai_confidence`). Chama
+  a Google Generative Language API (`gemini-2.5-flash`, `responseSchema`
+  pra saída JSON estruturada) com a foto em base64 **antes** do upload pro
+  Storage — só sobe pro bucket `promotion-images` depois que o usuário
+  confirma a publicação. Começou desenhada pra Claude Vision (Anthropic);
+  trocado pro Gemini porque o usuário já tinha uma chave pronta — a troca
+  ficou isolada no arquivo da function, já que o resto do app só enxerga o
+  contrato JSON (`{valid, confidence, reason?, title?, price?, originalPrice?}`).
+- Bloqueio: `valid=false` ou `confidence < 40` (limite aplicado no cliente,
+  em `useAnalyzePromotionImage`) impede avançar do passo 1 e pede nova foto.
+  Acima disso, os campos do passo 2 vêm pré-preenchidos mas continuam
+  editáveis, com selo de confiança (`Badge` — verde ≥70%, laranja abaixo).
+- `useImageUpload` ganhou `pickFromGallery` (além do `takePhoto` que já
+  existia) — usa `ImageManipulator` com `base64: true` na mesma chamada que
+  já fazia o resize, então a foto vai pro Storage por `uri` e pra IA por
+  `base64` sem duas conversões nem dependência nova (`expo-file-system`).
+- `tsconfig.json` ganhou `exclude: ["supabase/functions"]` — a função roda em
+  Deno (globais `Deno.*`), fora do projeto TS do app.
+
 ## [2026-08-02] Fase 6 (parte 2): testes automatizados (Jest + RNTL)
 
 - Infra: `jest-expo` ~54.0.17 + `jest` ~29.7.0 + `@testing-library/react-native` ^14.0.1

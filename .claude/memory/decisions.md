@@ -13,6 +13,48 @@ foram tomadas. Formato por entrada:
 
 ---
 
+## [2026-08-03] Wizard de publicação com IA (Claude Vision)
+
+**Contexto**: usuário pediu que a IA identifique produto/preço na foto antes
+da publicação e bloqueie fotos que não sejam de produto/etiqueta — a tela
+de "Publicar promoção" era um formulário único sem nenhuma etapa de
+validação de conteúdo.
+
+**Decisão**:
+- Provedor: Gemini (`gemini-2.5-flash`, Google Generative Language API),
+  chamado só a partir de uma Edge Function nova (`analyze-promotion-image`)
+  — a `GEMINI_API_KEY` nunca chega ao app, fica só como secret da função.
+  Desenho original era Claude Vision (Anthropic); trocado quando o usuário
+  ofereceu uma chave do Gemini já pronta — o contrato entre a function e o
+  cliente (JSON com `valid`/`confidence`/`title`/`price`/`originalPrice`) é
+  o mesmo independente do provedor por trás, então a troca não exigiu tocar
+  em nenhum outro arquivo.
+- A imagem é analisada **antes** de subir pro Storage (envia base64 direto
+  pra função); só é enviada ao bucket `promotion-images` depois que o
+  usuário publica de fato no passo 2 — evita gastar Storage com fotos
+  rejeitadas.
+- Bloqueio: `valid=false` OU `confidence < 40` impede avançar do passo 1.
+  Entre 40–100 deixa passar mas mostra o selo de confiança em laranja
+  (aviso) abaixo de 70, verde a partir daí.
+- Campos do passo 2 continuam **sempre editáveis**, sem um estado
+  "travado até tocar em editar" — a IA só sugere.
+- Pontos exibidos na confirmação usam o valor real do trigger de
+  gamificação (+10, `award_points_create_promo` na migration `0010`), não
+  um número arbitrário.
+
+**Alternativas consideradas**: rodar a análise no cliente (sem Edge
+Function) — descartada por expor a chave da Anthropic no app; travar os
+campos até o usuário tocar em "editar" — descartado por adicionar fricção
+sem ganho real, já que o usuário sempre pode simplesmente reescrever o
+campo.
+
+**Consequências**: primeira Edge Function do projeto — `supabase/functions/`
+passa a existir e fica de fora do `tsconfig.json` do app (roda em Deno).
+Publicação sem foto reconhecível não é mais possível — todo fluxo de
+publicação passa pela análise de IA antes do passo de informações.
+
+---
+
 ## [2026-08-02] Testes automatizados com Jest + RNTL v14 (Fase 6 parte 2)
 
 **Contexto**: o projeto não tinha nenhum teste automatizado; a Fase 6 parte 1

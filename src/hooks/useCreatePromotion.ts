@@ -8,14 +8,21 @@ import { useAuthContext } from '../contexts/AuthContext';
 
 const MVP_CATEGORY_SLUG = 'mercado';
 
+export type CreatePromotionSubmitInput = CreatePromotionInput & {
+  /** Preenchido quando os dados vieram da análise de IA da foto (wizard de publicação). */
+  aiAssisted?: boolean;
+  aiConfidence?: number;
+};
+
 export function useCreatePromotion() {
   const { session } = useAuthContext();
   const queryClient = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function submit(input: CreatePromotionInput) {
-    const parsed = createPromotionSchema.safeParse(input);
+  async function submit(input: CreatePromotionSubmitInput) {
+    const { aiAssisted, aiConfidence, ...toValidate } = input;
+    const parsed = createPromotionSchema.safeParse(toValidate);
     if (!parsed.success) {
       setError(parsed.error.issues[0].message);
       return false;
@@ -55,6 +62,8 @@ export function useCreatePromotion() {
       price: parsed.data.price,
       original_price: parsed.data.originalPrice,
       image_url: imageUrl,
+      ai_assisted: aiAssisted ?? false,
+      ai_confidence: aiConfidence ?? null,
     });
 
     setSubmitting(false);

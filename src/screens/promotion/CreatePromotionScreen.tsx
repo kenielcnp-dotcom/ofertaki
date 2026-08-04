@@ -1,135 +1,77 @@
 import { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Button } from '../../components/common/Button';
-import { Input } from '../../components/common/Input';
-import { MarketSelect } from '../../components/forms/MarketSelect';
-import { DepartmentSelect } from '../../components/forms/DepartmentSelect';
-import { useMarkets } from '../../hooks/useMarkets';
-import { useDepartments } from '../../hooks/useDepartments';
-import { useCreatePromotion } from '../../hooks/useCreatePromotion';
-import { useImageUpload } from '../../hooks/useImageUpload';
+import { StyleSheet, View } from 'react-native';
+import { Stepper, type StepperStep } from '../../components/common/Stepper';
+import { PhotoStep } from './steps/PhotoStep';
+import { InfoStep } from './steps/InfoStep';
+import { PublishStep } from './steps/PublishStep';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
-import { typography } from '../../theme/typography';
 import type { MainTabScreenProps } from '../../navigation/types';
+import type { PromotionImageAnalysis } from '../../services/ai.service';
 
 type Props = MainTabScreenProps<'Publicar'>;
 
+type ValidAnalysis = Extract<PromotionImageAnalysis, { valid: true }>;
+
+const STEPS: StepperStep[] = [
+  { key: 'foto', label: 'Foto' },
+  { key: 'info', label: 'Info' },
+  { key: 'publicar', label: 'Publicar' },
+];
+
 export function CreatePromotionScreen({ navigation }: Props) {
-  const { markets } = useMarkets();
-  const { departments } = useDepartments();
-  const {
-    uri: imageUri,
-    picking,
-    error: imageError,
-    pickImage,
-    reset: resetImage,
-  } = useImageUpload();
-  const { submit, submitting, error } = useCreatePromotion();
+  const [stepIndex, setStepIndex] = useState(0);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<ValidAnalysis | null>(null);
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [originalPrice, setOriginalPrice] = useState('');
-  const [marketId, setMarketId] = useState<string | null>(null);
-  const [departmentId, setDepartmentId] = useState<string | null>(null);
+  function handlePhotoConfirmed(uri: string, result: ValidAnalysis) {
+    setImageUri(uri);
+    setAnalysis(result);
+    setStepIndex(1);
+  }
 
-  async function handleSubmit() {
-    const ok = await submit({
-      title,
-      description: description || undefined,
-      price: Number(price.replace(',', '.')),
-      originalPrice: Number(originalPrice.replace(',', '.')),
-      marketId: marketId ?? '',
-      departmentId: departmentId ?? '',
-      imageUri: imageUri ?? '',
-    });
-
-    if (ok) {
-      setTitle('');
-      setDescription('');
-      setPrice('');
-      setOriginalPrice('');
-      setMarketId(null);
-      setDepartmentId(null);
-      resetImage();
-      navigation.navigate('Home');
-    }
+  function handleReset() {
+    setImageUri(null);
+    setAnalysis(null);
+    setStepIndex(0);
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={typography.title}>Publicar promoção</Text>
-
-      <View style={styles.imageSection}>
-        {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.preview} />
-        ) : (
-          <View style={styles.placeholder}>
-            <Text style={styles.placeholderText}>Nenhuma foto tirada ainda</Text>
-          </View>
-        )}
-        <Button
-          label={imageUri ? 'Tirar outra foto' : 'Tirar foto'}
-          variant="secondary"
-          loading={picking}
-          onPress={pickImage}
-        />
-        {imageError ? <Text style={styles.errorText}>{imageError}</Text> : null}
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Stepper steps={STEPS} currentIndex={stepIndex} />
       </View>
 
-      <Input label="Título" value={title} onChangeText={setTitle} placeholder="Ex: Arroz 5kg" />
-      <Input
-        label="Descrição"
-        value={description}
-        onChangeText={setDescription}
-        placeholder="Detalhes da promoção"
-        multiline
-      />
-      <Input
-        label="Preço (R$)"
-        value={price}
-        onChangeText={setPrice}
-        placeholder="Ex: 19,90"
-        keyboardType="decimal-pad"
-      />
-      <Input
-        label="Valor sem promoção (R$)"
-        value={originalPrice}
-        onChangeText={setOriginalPrice}
-        placeholder="Ex: 24,90"
-        keyboardType="decimal-pad"
-      />
-      <MarketSelect markets={markets} value={marketId} onChange={setMarketId} />
-      <DepartmentSelect departments={departments} value={departmentId} onChange={setDepartmentId} />
-
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-      <Button label="Publicar" loading={submitting} onPress={handleSubmit} />
-    </ScrollView>
+      {stepIndex === 0 || !imageUri || !analysis ? (
+        <PhotoStep onConfirmed={handlePhotoConfirmed} />
+      ) : stepIndex === 1 ? (
+        <InfoStep
+          imageUri={imageUri}
+          analysis={analysis}
+          onBack={() => setStepIndex(0)}
+          onPublished={() => setStepIndex(2)}
+        />
+      ) : (
+        <PublishStep
+          onViewFeed={() => {
+            handleReset();
+            navigation.navigate('Home');
+          }}
+          onPublishAnother={handleReset}
+        />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: spacing.lg },
-  imageSection: { marginBottom: spacing.lg, alignItems: 'center' },
-  preview: {
-    width: '100%',
-    height: 200,
-    borderRadius: 12,
-    marginBottom: spacing.md,
-    backgroundColor: colors.surface,
+  header: {
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    backgroundColor: colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  placeholder: {
-    width: '100%',
-    height: 200,
-    borderRadius: 12,
-    marginBottom: spacing.md,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholderText: { color: colors.textMuted },
-  errorText: { color: colors.danger, marginBottom: spacing.md },
 });

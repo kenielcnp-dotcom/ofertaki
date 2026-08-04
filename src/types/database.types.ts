@@ -480,6 +480,8 @@ export type Database = {
       }
       promotions: {
         Row: {
+          ai_assisted: boolean
+          ai_confidence: number | null
           avg_rating: number
           category_id: string
           comments_count: number
@@ -503,6 +505,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_assisted?: boolean
+          ai_confidence?: number | null
           avg_rating?: number
           category_id: string
           comments_count?: number
@@ -526,6 +530,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_assisted?: boolean
+          ai_confidence?: number | null
           avg_rating?: number
           category_id?: string
           comments_count?: number
