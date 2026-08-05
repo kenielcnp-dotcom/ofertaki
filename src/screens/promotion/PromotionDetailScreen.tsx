@@ -1,5 +1,5 @@
 import { Fragment, useLayoutEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../components/common/Button';
@@ -60,20 +60,38 @@ export function PromotionDetailScreen({ route, navigation }: Props) {
   const { submit: submitReport, submitting: reportSubmitting, error: reportError } =
     useReportPromotion(promotionId);
 
+  function handleShare() {
+    if (!promotion) return;
+    const savingsAmount = promotion.original_price - promotion.price;
+    const priceLine =
+      savingsAmount > 0
+        ? `${formatPrice(promotion.price)} (economize ${formatPrice(savingsAmount)})`
+        : formatPrice(promotion.price);
+    const storeLine = promotion.mercados?.name ? ` no ${promotion.mercados.name}` : '';
+    Share.share({
+      message: `${promotion.title} por ${priceLine}${storeLine}. Encontrei no Ofertaki!`,
+    });
+  }
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () =>
-        !isAuthor ? (
-          <IconButton
-            icon="flag"
-            tone="danger"
-            size={34}
-            label="Denunciar promoção"
-            onPress={() => setReportModalVisible(true)}
-          />
-        ) : null,
+      headerRight: () => (
+        <View style={styles.headerActions}>
+          <IconButton icon="share-social-outline" tone="primary" size={34} label="Compartilhar" onPress={handleShare} />
+          {!isAuthor ? (
+            <IconButton
+              icon="flag"
+              tone="danger"
+              size={34}
+              label="Denunciar promoção"
+              onPress={() => setReportModalVisible(true)}
+            />
+          ) : null}
+        </View>
+      ),
     });
-  }, [navigation, isAuthor]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigation, isAuthor, promotion]);
 
   if (loading) {
     return (
@@ -419,6 +437,7 @@ function Avatar({ username, avatarUrl, size }: { username?: string | null; avata
 }
 
 const styles = StyleSheet.create({
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   container: { flex: 1 },
   content: { padding: spacing.lg },
   skeletonImage: { marginBottom: spacing.md },
