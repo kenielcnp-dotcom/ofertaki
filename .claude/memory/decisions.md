@@ -13,6 +13,49 @@ foram tomadas. Formato por entrada:
 
 ---
 
+## [2026-08-04] Redesenho da Promoção + fundação de expiração/relevância
+
+**Contexto**: especificação de 10 regras de feed (expiração, "não encontrei
+mais", queda gradual, ranking por IA, deduplicação, reputação/banimento,
+moderação) trazida pelo usuário, junto com um protótipo visual da tela de
+detalhe da promoção. Combinado fazer só a fundação (tipo/expiração,
+"não encontrei mais", denunciar reposicionado, selos de queda gradual) +
+o redesenho visual nesta rodada; ranking por IA, deduplicação e
+reputação negativa ficam pra depois.
+
+**Decisão**:
+- Sem cron: expiração e ocultação por voto são calculadas no momento da
+  leitura (filtro no `list()`), não por um job periódico — o projeto não
+  tem pg_cron configurado, e um job novo só pra isso seria escopo extra
+  não pedido.
+- Sem selo de nível (Bronze/Prata/Ouro) — rejeitado explicitamente pelo
+  usuário por ser "prompt-alucinado" pelo protótipo; mostra só o número
+  cru de reputação, igual ao Perfil.
+- Sem tag "Aproveitei também" nos comentários — removida a pedido do
+  usuário.
+- Sem "Responder"/curtida em comentário — o protótipo mostrava os dois,
+  mas nenhum tem suporte no schema (`comments` não tem thread nem
+  contador de curtida próprio); implementá-los criaria botões que não
+  fazem nada. Cortado por conta própria, não só por pedido do usuário.
+- "Curtir" perdeu o botão dedicado — a estatística "❤ N curtiram" do card
+  de confiança virou o próprio toggle, evitando duplicar a ação.
+- "Categoria" na tela é sempre o departamento (`departments.name`) — o
+  `category_id` real é fixo desde o MVP, nunca foi um conceito exposto ao
+  usuário.
+
+**Alternativas consideradas**: job periódico (pg_cron) pra flipar
+`status='expired'` no horário exato — descartado por não haver
+infraestrutura de cron no projeto e por o filtro em tempo de leitura já
+produzir o mesmo resultado visível sem esse custo.
+
+**Consequências**: `isHotDeal()` foi removido (substituído por
+`freshnessTier()`, que cobre o mesmo caso "quente" e mais três estados).
+Publicar promoção ganhou um campo obrigatório a mais (tipo) e um
+condicional (validade, só pro encarte) — dependência nova
+(`@react-native-community/datetimepicker`).
+
+---
+
 ## [2026-08-03] Wizard de publicação com IA (Claude Vision)
 
 **Contexto**: usuário pediu que a IA identifique produto/preço na foto antes

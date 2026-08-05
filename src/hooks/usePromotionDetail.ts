@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { promotionsService } from '../services/promotions.service';
 import { likesService } from '../services/likes.service';
 import { confirmationsService } from '../services/confirmations.service';
+import { notFoundVotesService } from '../services/notFoundVotes.service';
 import { commentsService } from '../services/comments.service';
 import { ratingsService } from '../services/ratings.service';
 import { useAuthContext } from '../contexts/AuthContext';
+import type { CommentWithAuthor } from '../types/promotion';
 
 export function usePromotionDetail(promotionId: string) {
   const { session } = useAuthContext();
@@ -43,6 +45,15 @@ export function usePromotionDetail(promotionId: string) {
     queryFn: async () => {
       const { data, error } = await commentsService.listForPromotion(promotionId);
       if (error) throw error;
+      return (data ?? []) as CommentWithAuthor[];
+    },
+  });
+
+  const notFoundVotesQuery = useQuery({
+    queryKey: ['notFoundVotes', promotionId],
+    queryFn: async () => {
+      const { data, error } = await notFoundVotesService.listForPromotion(promotionId);
+      if (error) throw error;
       return data ?? [];
     },
   });
@@ -59,6 +70,8 @@ export function usePromotionDetail(promotionId: string) {
   const hasLiked = !!userId && (likesQuery.data ?? []).some((like) => like.user_id === userId);
   const hasConfirmed =
     !!userId && (confirmationsQuery.data ?? []).some((confirmation) => confirmation.user_id === userId);
+  const hasVotedNotFound =
+    !!userId && (notFoundVotesQuery.data ?? []).some((vote) => vote.user_id === userId);
   const userRating =
     (userId && (ratingsQuery.data ?? []).find((rating) => rating.user_id === userId)?.score) || 0;
 
@@ -66,6 +79,11 @@ export function usePromotionDetail(promotionId: string) {
     queryClient.invalidateQueries({ queryKey: ['promotion', promotionId] });
     queryClient.invalidateQueries({ queryKey: ['likes', promotionId] });
     queryClient.invalidateQueries({ queryKey: ['confirmations', promotionId] });
+  }
+
+  function invalidateNotFoundVotes() {
+    queryClient.invalidateQueries({ queryKey: ['promotion', promotionId] });
+    queryClient.invalidateQueries({ queryKey: ['notFoundVotes', promotionId] });
   }
 
   const toggleLike = useMutation({
@@ -162,6 +180,52 @@ export function usePromotionDetail(promotionId: string) {
     onSettled: invalidateCounters,
   });
 
+  const toggleNotFound = useMutation({
+    mutationFn: async () => {
+      if (!userId) throw new Error('Faça login para avisar.');
+      const { error } = hasVotedNotFound
+        ? await notFoundVotesService.unvote(promotionId, userId)
+        : await notFoundVotesService.vote(promotionId, userId);
+      if (error) throw error;
+    },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['promotion', promotionId] });
+      await queryClient.cancelQueries({ queryKey: ['notFoundVotes', promotionId] });
+
+      const previousPromotion = queryClient.getQueryData(['promotion', promotionId]);
+      const previousVotes = queryClient.getQueryData(['notFoundVotes', promotionId]);
+
+      queryClient.setQueryData(['promotion', promotionId], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          not_found_count: hasVotedNotFound
+            ? Math.max(0, (old.not_found_count ?? 0) - 1)
+            : (old.not_found_count ?? 0) + 1,
+        };
+      });
+
+      queryClient.setQueryData(['notFoundVotes', promotionId], (old: any) => {
+        if (!old) return old ?? [];
+        if (hasVotedNotFound) {
+          return old.filter((v: any) => v.user_id !== userId);
+        }
+        return [...old, { user_id: userId, promotion_id: promotionId, id: 'optimistic', created_at: new Date().toISOString() }];
+      });
+
+      return { previousPromotion, previousVotes };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousPromotion) {
+        queryClient.setQueryData(['promotion', promotionId], context.previousPromotion);
+      }
+      if (context?.previousVotes) {
+        queryClient.setQueryData(['notFoundVotes', promotionId], context.previousVotes);
+      }
+    },
+    onSettled: invalidateNotFoundVotes,
+  });
+
   const rate = useMutation({
     mutationFn: async (score: number) => {
       if (!userId) throw new Error('Faça login para avaliar.');
@@ -226,10 +290,12 @@ export function usePromotionDetail(promotionId: string) {
     comments: commentsQuery.data ?? [],
     hasLiked,
     hasConfirmed,
+    hasVotedNotFound,
     userRating,
     isAuthor: !!userId && promotionQuery.data?.user_id === userId,
     toggleLike,
     toggleConfirm,
+    toggleNotFound,
     rate,
     addComment,
   };

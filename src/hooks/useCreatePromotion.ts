@@ -4,7 +4,9 @@ import { promotionsService } from '../services/promotions.service';
 import { storageService } from '../services/storage.service';
 import { categoriesService } from '../services/categories.service';
 import { createPromotionSchema, type CreatePromotionInput } from '../utils/validation';
+import { durationForType } from '../utils/promotionInsights';
 import { useAuthContext } from '../contexts/AuthContext';
+import type { PromotionType } from '../types/promotion';
 
 const MVP_CATEGORY_SLUG = 'mercado';
 
@@ -12,7 +14,18 @@ export type CreatePromotionSubmitInput = CreatePromotionInput & {
   /** Preenchido quando os dados vieram da análise de IA da foto (wizard de publicação). */
   aiAssisted?: boolean;
   aiConfidence?: number;
+  promotionType: PromotionType;
+  /** Só usado quando promotionType='encarte' — vira `expires_at` direto. */
+  validUntil?: Date;
 };
+
+function computeExpiresAt(promotionType: PromotionType, validUntil?: Date): string | null {
+  if (promotionType === 'encarte') {
+    return validUntil ? validUntil.toISOString() : null;
+  }
+  const duration = durationForType(promotionType);
+  return duration ? new Date(Date.now() + duration).toISOString() : null;
+}
 
 export function useCreatePromotion() {
   const { session } = useAuthContext();
@@ -21,7 +34,7 @@ export function useCreatePromotion() {
   const [error, setError] = useState<string | null>(null);
 
   async function submit(input: CreatePromotionSubmitInput) {
-    const { aiAssisted, aiConfidence, ...toValidate } = input;
+    const { aiAssisted, aiConfidence, promotionType, validUntil, ...toValidate } = input;
     const parsed = createPromotionSchema.safeParse(toValidate);
     if (!parsed.success) {
       setError(parsed.error.issues[0].message);
@@ -64,6 +77,8 @@ export function useCreatePromotion() {
       image_url: imageUrl,
       ai_assisted: aiAssisted ?? false,
       ai_confidence: aiConfidence ?? null,
+      promotion_type: promotionType,
+      expires_at: computeExpiresAt(promotionType, validUntil),
     });
 
     setSubmitting(false);

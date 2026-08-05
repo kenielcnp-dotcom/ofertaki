@@ -7,10 +7,19 @@ import { spacing } from '../../theme/spacing';
 import { radius } from '../../theme/radius';
 import { typography, shadows } from '../../theme/typography';
 import { formatPrice, formatRelativeTime } from '../../utils/formatters';
-import { discountPercent, isHotDeal } from '../../utils/promotionInsights';
+import { discountPercent, freshnessTier, type FreshnessTier } from '../../utils/promotionInsights';
 import type { PromotionWithMarket } from '../../types/promotion';
 
 type Stat = { icon: keyof typeof Ionicons.glyphMap; value: number; label: string };
+
+const NOT_FOUND_WARNING_THRESHOLD = 3;
+
+const TIER_BADGE: Record<FreshnessTier, { label: string; icon: keyof typeof Ionicons.glyphMap; bg: string }> = {
+  quente: { label: 'OFERTA QUENTE', icon: 'flame', bg: colors.secondary },
+  recente: { label: 'RECENTE', icon: 'leaf', bg: colors.success },
+  pode_existir: { label: 'PODE EXISTIR', icon: 'help-circle', bg: colors.warning },
+  antiga: { label: 'ANTIGA', icon: 'time', bg: colors.textSubtle },
+};
 
 export function PromotionCard({
   promotion,
@@ -31,7 +40,9 @@ export function PromotionCard({
 
   const discount = discountPercent(promotion);
   const savings = promotion.original_price - promotion.price;
-  const hot = isHotDeal(promotion);
+  const tier = freshnessTier(promotion);
+  const tierBadge = tier ? TIER_BADGE[tier] : null;
+  const maybeGone = promotion.not_found_count >= NOT_FOUND_WARNING_THRESHOLD;
 
   return (
     <Pressable
@@ -48,12 +59,20 @@ export function PromotionCard({
           importantForAccessibility="no-hide-descendants"
         />
 
-        {hot ? (
-          <View style={styles.hotBadge}>
-            <Ionicons name="flame" size={12} color={colors.secondaryText} />
-            <Text style={styles.hotBadgeText}>OFERTA QUENTE</Text>
-          </View>
-        ) : null}
+        <View style={styles.badgeStack}>
+          {tierBadge ? (
+            <View style={[styles.tierBadge, { backgroundColor: tierBadge.bg }]}>
+              <Ionicons name={tierBadge.icon} size={12} color={colors.textInverse} />
+              <Text style={styles.tierBadgeText}>{tierBadge.label}</Text>
+            </View>
+          ) : null}
+          {maybeGone ? (
+            <View style={[styles.tierBadge, { backgroundColor: colors.danger }]}>
+              <Ionicons name="alert" size={12} color={colors.textInverse} />
+              <Text style={styles.tierBadgeText}>Pode ter acabado</Text>
+            </View>
+          ) : null}
+        </View>
 
         {discount > 0 ? (
           <View style={styles.discountBadge}>
@@ -140,20 +159,23 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.92, transform: [{ scale: 0.99 }] },
   imageWrapper: { position: 'relative' },
   image: { width: '100%', height: 176, backgroundColor: colors.surface },
-  hotBadge: {
+  badgeStack: {
     position: 'absolute',
     top: spacing.sm,
     left: spacing.sm,
+    gap: spacing.xs,
+    alignItems: 'flex-start',
+  },
+  tierBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.secondary,
     paddingHorizontal: spacing.sm,
     paddingVertical: 5,
     borderRadius: radius.pill,
     ...shadows.raised,
   },
-  hotBadgeText: { ...typography.micro, color: colors.secondaryText, fontWeight: '700' },
+  tierBadgeText: { ...typography.micro, color: colors.textInverse, fontWeight: '700' },
   discountBadge: {
     position: 'absolute',
     top: spacing.sm,

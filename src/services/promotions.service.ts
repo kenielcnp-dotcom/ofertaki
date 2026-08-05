@@ -1,9 +1,10 @@
 import { supabase } from './supabase/client';
 import type { TablesInsert } from '../types/database.types';
-import type { PromotionWithMarket } from '../types/promotion';
+import type { PromotionDetail, PromotionWithMarket } from '../types/promotion';
 
 const PAGE_SIZE = 20;
 const SELECT_WITH_MARKET = '*, mercados (name)';
+const SELECT_DETAIL = '*, mercados (name), departments (name), profiles (username, reputation_score, avatar_url)';
 
 export type PromotionSort = 'recent' | 'confirmed';
 
@@ -25,6 +26,8 @@ export const promotionsService = {
       .from('promotions')
       .select(SELECT_WITH_MARKET)
       .eq('status', 'active')
+      .lt('not_found_count', 5)
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
 
     if (sort === 'confirmed') {
@@ -50,8 +53,8 @@ export const promotionsService = {
   },
 
   async getById(id: string) {
-    const result = await supabase.from('promotions').select(SELECT_WITH_MARKET).eq('id', id).single();
-    return { ...result, data: result.data as PromotionWithMarket | null };
+    const result = await supabase.from('promotions').select(SELECT_DETAIL).eq('id', id).single();
+    return { ...result, data: result.data as PromotionDetail | null };
   },
 
   async create(input: TablesInsert<'promotions'>) {

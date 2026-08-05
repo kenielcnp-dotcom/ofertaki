@@ -25,3 +25,23 @@ export function formatRelativeTime(isoDate: string): string {
 export function formatPoints(points: number): string {
   return `${points.toLocaleString('pt-BR')} pts`;
 }
+
+/** "Hoje às 14:32", "Ontem às 09:10", "03/08 às 18:00" — data absoluta de publicação. */
+export function formatPublishedAt(isoDate: string): string {
+  const date = new Date(isoDate);
+  const now = new Date();
+  const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+  if (date.toDateString() === now.toDateString()) {
+    return `Hoje às ${time}`;
+  }
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) {
+    return `Ontem às ${time}`;
+  }
+
+  const day = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  return `${day} às ${time}`;
+}

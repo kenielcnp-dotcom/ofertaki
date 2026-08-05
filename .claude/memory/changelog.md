@@ -3,6 +3,39 @@
 > Histórico de mudanças relevantes no projeto. Formato: mais recente no topo.
 > O detalhe de cada decisão fica em `decisions.md`.
 
+## [2026-08-04] Redesenho da tela de Promoção + fundação de expiração/relevância
+
+- Migration `0021_feed_relevance_phase1.sql`: `promotions.promotion_type`
+  (relâmpago/comum/encarte), `last_confirmed_at`, `not_found_count` +
+  tabela `promotion_not_found_votes` (mesmo padrão de `confirmations`/`likes`,
+  com trigger de contador via `adjust_promotion_counter` e auto-arquivamento
+  em 10 votos, espelhando o trigger de denúncias em 5). O trigger de
+  confirmação passou a atualizar `last_confirmed_at`.
+- `promotionInsights.ts`: `isHotDeal` foi substituído por `freshnessTier`
+  (🔥 quente/🟢 recente/🟡 pode existir/⚪ antiga — função pura de tempo
+  decorrido desde a última confirmação, como fração da duração do tipo) e
+  `durationForType`/`qualityLabel` novos. `PromotionCard` e
+  `PromotionDetailScreen` usam o mesmo selo.
+- `promotions.service.ts` `list()` ganhou filtro de `not_found_count < 5`
+  e de `expires_at` — sem cron, expiração e ocultação por voto são
+  resolvidas no momento da leitura, não por um job periódico (não existe
+  pg_cron configurado no projeto).
+- `PromotionDetailScreen.tsx` reescrita: card de preço com barra de
+  desconto, painel "Confiança da comunidade" (curtir virou a própria
+  estatística tocável, sem botão dedicado), CTA "Aproveitei essa oferta"
+  (era "Confirmar"), pills de "Adicionar à Lista"/"Comentar"/"Não encontrei
+  mais", denunciar virou ícone de bandeira no header
+  (`navigation.setOptions({ headerRight })`), barra fixa no rodapé, autor
+  com pontos crus (sem selo de nível — decisão explícita do usuário) e
+  comentários com autor/avatar (`comments.service.ts` agora traz
+  `profiles(username, avatar_url)`).
+- `InfoStep.tsx` ganhou seletor de tipo de promoção e, pro encarte, um date
+  picker (`@react-native-community/datetimepicker`, dependência nova) —
+  `expires_at` é calculado no `useCreatePromotion.ts` a partir do tipo.
+- Sem tag "Aproveitei também"/resposta em comentários — descartado por não
+  ter suporte no schema (sem threads, sem curtida de comentário) e por
+  pedido explícito do usuário de simplificar o protótipo original.
+
 ## [2026-08-03] Wizard "Publicar promoção" com IA (Claude Vision)
 
 - `CreatePromotionScreen` deixou de ser um formulário único e virou um

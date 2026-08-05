@@ -492,10 +492,13 @@ export type Database = {
           expires_at: string | null
           id: string
           image_url: string
+          last_confirmed_at: string | null
           likes_count: number
           market_id: string
+          not_found_count: number
           original_price: number
           price: number
+          promotion_type: string
           ratings_count: number
           reports_count: number
           search_vector: unknown
@@ -517,10 +520,13 @@ export type Database = {
           expires_at?: string | null
           id?: string
           image_url: string
+          last_confirmed_at?: string | null
           likes_count?: number
           market_id: string
+          not_found_count?: number
           original_price: number
           price: number
+          promotion_type?: string
           ratings_count?: number
           reports_count?: number
           search_vector?: unknown
@@ -542,10 +548,13 @@ export type Database = {
           expires_at?: string | null
           id?: string
           image_url?: string
+          last_confirmed_at?: string | null
           likes_count?: number
           market_id?: string
+          not_found_count?: number
           original_price?: number
           price?: number
+          promotion_type?: string
           ratings_count?: number
           reports_count?: number
           search_vector?: unknown
@@ -578,6 +587,42 @@ export type Database = {
           },
           {
             foreignKeyName: "promotions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promotion_not_found_votes: {
+        Row: {
+          created_at: string
+          id: string
+          promotion_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          promotion_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          promotion_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotion_not_found_votes_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotion_not_found_votes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

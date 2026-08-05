@@ -1,4 +1,4 @@
-import { formatPrice, formatRelativeTime, formatPoints } from '../formatters';
+import { formatPrice, formatRelativeTime, formatPoints, formatPublishedAt } from '../formatters';
 
 describe('formatPrice', () => {
   // `\s` também casa o espaço não separável (NBSP) que o toLocaleString pode
@@ -44,6 +44,35 @@ describe('formatRelativeTime', () => {
 
   it('retorna anos no formato "há X a"', () => {
     expect(formatRelativeTime('2024-02-02T12:00:00Z')).toBe('há 2 a');
+  });
+});
+
+describe('formatPublishedAt', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    // Meio da tarde local, sem Z, pra "2h atrás"/"ontem" não cruzarem meia-noite.
+    jest.setSystemTime(new Date('2026-08-02T15:00:00'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('mesmo dia retorna "Hoje às HH:mm"', () => {
+    const earlierToday = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    expect(formatPublishedAt(earlierToday.toISOString())).toMatch(/^Hoje às \d{2}:\d{2}$/);
+  });
+
+  it('dia anterior retorna "Ontem às HH:mm"', () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    expect(formatPublishedAt(yesterday.toISOString())).toMatch(/^Ontem às \d{2}:\d{2}$/);
+  });
+
+  it('data mais antiga retorna "DD/MM às HH:mm"', () => {
+    const older = new Date();
+    older.setDate(older.getDate() - 5);
+    expect(formatPublishedAt(older.toISOString())).toMatch(/^\d{2}\/\d{2} às \d{2}:\d{2}$/);
   });
 });
 

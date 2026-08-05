@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Badge } from '../../../components/common/Badge';
 import { Button } from '../../../components/common/Button';
 import { Input } from '../../../components/common/Input';
@@ -15,8 +16,15 @@ import { radius } from '../../../theme/radius';
 import { typography, shadows } from '../../../theme/typography';
 import { formatPrice } from '../../../utils/formatters';
 import type { PromotionImageAnalysis } from '../../../services/ai.service';
+import type { PromotionType } from '../../../types/promotion';
 
 type ValidAnalysis = Extract<PromotionImageAnalysis, { valid: true }>;
+
+const TYPE_OPTIONS: { value: PromotionType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { value: 'relampago', label: 'Relâmpago', icon: 'flash' },
+  { value: 'comum', label: 'Comum', icon: 'cart' },
+  { value: 'encarte', label: 'Encarte', icon: 'megaphone' },
+];
 
 type Props = {
   imageUri: string;
@@ -41,6 +49,9 @@ export function InfoStep({ imageUri, analysis, onBack, onPublished }: Props) {
   );
   const [marketId, setMarketId] = useState<string | null>(null);
   const [departmentId, setDepartmentId] = useState<string | null>(null);
+  const [promotionType, setPromotionType] = useState<PromotionType>('comum');
+  const [validUntil, setValidUntil] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const priceNumber = Number(price.replace(',', '.'));
   const originalPriceNumber = Number(originalPrice.replace(',', '.'));
@@ -63,6 +74,8 @@ export function InfoStep({ imageUri, analysis, onBack, onPublished }: Props) {
       imageUri,
       aiAssisted: true,
       aiConfidence: analysis.confidence,
+      promotionType,
+      validUntil: promotionType === 'encarte' ? validUntil ?? undefined : undefined,
     });
 
     if (ok) onPublished();
@@ -85,6 +98,54 @@ export function InfoStep({ imageUri, analysis, onBack, onPublished }: Props) {
         </View>
         <Badge label={`${Math.round(analysis.confidence)}%`} tone={confidenceTone} />
       </View>
+
+      <Text style={styles.fieldLabel}>Tipo de promoção</Text>
+      <View style={styles.typeRow}>
+        {TYPE_OPTIONS.map((option) => {
+          const selected = promotionType === option.value;
+          return (
+            <Pressable
+              key={option.value}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              accessibilityLabel={option.label}
+              onPress={() => setPromotionType(option.value)}
+              style={[styles.typeChip, selected && styles.typeChipSelected]}
+            >
+              <Ionicons name={option.icon} size={15} color={selected ? colors.secondaryText : colors.textMuted} />
+              <Text style={[styles.typeChipText, selected && styles.typeChipTextSelected]}>{option.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {promotionType === 'encarte' ? (
+        <View style={styles.dateWrap}>
+          <Text style={styles.fieldLabel}>Válido até</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Selecionar data de validade"
+            onPress={() => setShowDatePicker(true)}
+            style={styles.dateField}
+          >
+            <Ionicons name="calendar-outline" size={18} color={colors.textSubtle} />
+            <Text style={validUntil ? styles.dateFieldText : styles.dateFieldPlaceholder}>
+              {validUntil ? validUntil.toLocaleDateString('pt-BR') : 'Selecione a data'}
+            </Text>
+          </Pressable>
+          {showDatePicker ? (
+            <DateTimePicker
+              value={validUntil ?? new Date()}
+              mode="date"
+              minimumDate={new Date()}
+              onChange={(_event, date) => {
+                setShowDatePicker(false);
+                if (date) setValidUntil(date);
+              }}
+            />
+          ) : null}
+        </View>
+      ) : null}
 
       <Input label="Título" value={title} onChangeText={setTitle} placeholder="Ex: Arroz 5kg" />
 
@@ -203,6 +264,37 @@ const styles = StyleSheet.create({
   aiSub: { ...typography.caption, color: colors.textMuted, marginTop: 1 },
   row: { flexDirection: 'row', gap: spacing.sm },
   half: { flex: 1 },
+  fieldLabel: { ...typography.captionStrong, color: colors.text, marginBottom: spacing.xs + 2 },
+  typeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+  typeChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    minHeight: 44,
+    borderRadius: radius.pill,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.backgroundAlt,
+  },
+  typeChipSelected: { backgroundColor: colors.secondary, borderColor: colors.secondary },
+  typeChipText: { ...typography.captionStrong, color: colors.textMuted },
+  typeChipTextSelected: { color: colors.secondaryText },
+  dateWrap: { marginBottom: spacing.md },
+  dateField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minHeight: 52,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.backgroundAlt,
+  },
+  dateFieldText: { ...typography.body, color: colors.text },
+  dateFieldPlaceholder: { ...typography.body, color: colors.textSubtle },
   savingsPill: {
     flexDirection: 'row',
     alignItems: 'center',

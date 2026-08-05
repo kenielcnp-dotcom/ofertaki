@@ -4,7 +4,7 @@ export const commentsService = {
   async listForPromotion(promotionId: string) {
     return supabase
       .from('comments')
-      .select('*')
+      .select('*, profiles (username, avatar_url)')
       .eq('promotion_id', promotionId)
       .order('created_at', { ascending: true });
   },
