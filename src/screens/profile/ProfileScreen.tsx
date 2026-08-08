@@ -19,7 +19,7 @@ function StatItem({ icon, title, value }: { icon: keyof typeof Feather.glyphMap;
   return (
     <View style={styles.statItem}>
       <Feather name={icon} size={20} color={colors.textMuted} />
-      <Text style={[typography.micro, styles.statTitle]} numberOfLines={2} textAlign="center">
+      <Text style={[typography.micro, styles.statTitle, styles.statTitleCenter]} numberOfLines={2}>
         {title}
       </Text>
       <Text style={[typography.bodyStrong, { color: colors.primary }]}>{value}</Text>
@@ -244,6 +244,9 @@ const styles = StyleSheet.create({
   statTitle: {
     color: colors.textMuted,
     minHeight: 28,
+  },
+  statTitleCenter: {
+    textAlign: 'center',
   },
   dividerHorizontal: {
     height: 1,

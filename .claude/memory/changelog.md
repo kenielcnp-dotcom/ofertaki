@@ -3,6 +3,25 @@
 > Histórico de mudanças relevantes no projeto. Formato: mais recente no topo.
 > O detalhe de cada decisão fica em `decisions.md`.
 
+## [2026-08-08] Regras do feed — Fase 2: ranking por relevância e deduplicação
+
+- **Migration `0022`**: `promotion_relevance_score(promotions)` — computed
+  column do PostgREST que combina frescor (40%, mesma lógica de tempo do
+  `freshnessTier`) + confirmações + curtidas + avaliação − penalidade de
+  "não encontrei mais". Sort `'relevance'` virou o padrão do feed
+  (`promotions.service.ts`, `FeedScreen.tsx`, `FilterModal.tsx`).
+- **Migration `0023`**: deduplicação de promoções ao publicar. Extensão
+  `pg_trgm` + índice trigram em `promotions.title` + função
+  `find_similar_active_promotions(market_id, title, price)` (mesmo
+  mercado, título com similaridade > 0.35, preço dentro de ±20%).
+  No wizard de publicação (`InfoStep.tsx`), ao tocar em "Publicar", se
+  aparecer uma candidata, mostra `DuplicateModal` com a opção de
+  **confirmar a oferta existente** (reaproveita `confirmationsService`,
+  mesmo caminho de pontos/frescor de sempre) em vez de criar duplicata.
+- Corrigido de passagem: `ProfileScreen.tsx` tinha `textAlign` como prop
+  direta do `<Text>` (erro de TS trazido pelo commit anterior) — movido
+  pro `style`.
+
 ## [2026-08-08] Perfil do Usuário, Telas Legais (LGPD) e Navegação
 
 - **Navegação do Perfil**: A tela `ProfileScreen` teve seus botões de menu ativados. O botão "Dispositivos conectados" foi removido a pedido.

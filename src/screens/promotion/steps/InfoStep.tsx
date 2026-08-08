@@ -1,22 +1,27 @@
 import { useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Badge } from '../../../components/common/Badge';
 import { Button } from '../../../components/common/Button';
 import { Input } from '../../../components/common/Input';
+import { DuplicateModal } from '../../../components/promotion/DuplicateModal';
 import { MarketSelect } from '../../../components/forms/MarketSelect';
 import { DepartmentSelect } from '../../../components/forms/DepartmentSelect';
 import { useMarkets } from '../../../hooks/useMarkets';
 import { useDepartments } from '../../../hooks/useDepartments';
 import { useCreatePromotion } from '../../../hooks/useCreatePromotion';
+import { useAuthContext } from '../../../contexts/AuthContext';
+import { promotionsService } from '../../../services/promotions.service';
+import { confirmationsService } from '../../../services/confirmations.service';
 import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/spacing';
 import { radius } from '../../../theme/radius';
 import { typography, shadows } from '../../../theme/typography';
 import { formatPrice } from '../../../utils/formatters';
 import type { PromotionImageAnalysis } from '../../../services/ai.service';
-import type { PromotionType } from '../../../types/promotion';
+import type { Promotion, PromotionType } from '../../../types/promotion';
 
 type ValidAnalysis = Extract<PromotionImageAnalysis, { valid: true }>;
 
@@ -31,15 +36,18 @@ type Props = {
   analysis: ValidAnalysis;
   onBack: () => void;
   onPublished: () => void;
+  onDuplicateConfirmed: () => void;
 };
 
 const CONFIDENCE_HIGH = 70;
 const POINTS_ON_PUBLISH = 10;
 
-export function InfoStep({ imageUri, analysis, onBack, onPublished }: Props) {
+export function InfoStep({ imageUri, analysis, onBack, onPublished, onDuplicateConfirmed }: Props) {
   const { markets } = useMarkets();
   const { departments } = useDepartments();
   const { submit, submitting, error } = useCreatePromotion();
+  const { session } = useAuthContext();
+  const queryClient = useQueryClient();
 
   const [title, setTitle] = useState(analysis.title ?? '');
   const [description, setDescription] = useState('');
@@ -52,6 +60,9 @@ export function InfoStep({ imageUri, analysis, onBack, onPublished }: Props) {
   const [promotionType, setPromotionType] = useState<PromotionType>('comum');
   const [validUntil, setValidUntil] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [duplicateCandidate, setDuplicateCandidate] = useState<Promotion | null>(null);
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false);
+  const [confirmingDuplicate, setConfirmingDuplicate] = useState(false);
 
   const priceNumber = Number(price.replace(',', '.'));
   const originalPriceNumber = Number(originalPrice.replace(',', '.'));
@@ -63,7 +74,7 @@ export function InfoStep({ imageUri, analysis, onBack, onPublished }: Props) {
 
   const confidenceTone = analysis.confidence >= CONFIDENCE_HIGH ? 'success' : 'warning';
 
-  async function handleSubmit() {
+  async function doPublish() {
     const ok = await submit({
       title,
       description: description || undefined,
@@ -79,6 +90,40 @@ export function InfoStep({ imageUri, analysis, onBack, onPublished }: Props) {
     });
 
     if (ok) onPublished();
+  }
+
+  async function handleSubmit() {
+    if (marketId && title.trim() && priceNumber > 0) {
+      setCheckingDuplicate(true);
+      const { data } = await promotionsService.findSimilar({
+        marketId,
+        title: title.trim(),
+        price: priceNumber,
+      });
+      setCheckingDuplicate(false);
+
+      if (data && data.length > 0) {
+        setDuplicateCandidate(data[0]);
+        return;
+      }
+    }
+
+    await doPublish();
+  }
+
+  async function handleConfirmExisting() {
+    if (!duplicateCandidate || !session) return;
+    setConfirmingDuplicate(true);
+    await confirmationsService.confirm(duplicateCandidate.id, session.user.id);
+    setConfirmingDuplicate(false);
+    setDuplicateCandidate(null);
+    queryClient.invalidateQueries({ queryKey: ['promotions'] });
+    onDuplicateConfirmed();
+  }
+
+  async function handlePublishAnyway() {
+    setDuplicateCandidate(null);
+    await doPublish();
   }
 
   return (
@@ -225,12 +270,27 @@ export function InfoStep({ imageUri, analysis, onBack, onPublished }: Props) {
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <View style={styles.actions}>
-        <Button label="Publicar promoção" icon="rocket" loading={submitting} onPress={handleSubmit} />
+        <Button
+          label="Publicar promoção"
+          icon="rocket"
+          loading={submitting || checkingDuplicate}
+          onPress={handleSubmit}
+        />
         <Text style={styles.pointsHint}>
           Ao publicar, você ganha <Text style={styles.pointsHintStrong}>{POINTS_ON_PUBLISH} pontos</Text>!
         </Text>
         <Button label="Voltar" variant="ghost" onPress={onBack} disabled={submitting} />
       </View>
+
+      <DuplicateModal
+        visible={!!duplicateCandidate}
+        candidate={duplicateCandidate}
+        marketName={markets.find((m) => m.id === duplicateCandidate?.market_id)?.name}
+        confirming={confirmingDuplicate}
+        onConfirmExisting={handleConfirmExisting}
+        onPublishAnyway={handlePublishAnyway}
+        onClose={() => setDuplicateCandidate(null)}
+      />
     </ScrollView>
   );
 }

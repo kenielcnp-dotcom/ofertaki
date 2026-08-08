@@ -1,6 +1,6 @@
 import { supabase } from './supabase/client';
 import type { TablesInsert } from '../types/database.types';
-import type { PromotionDetail, PromotionWithMarket } from '../types/promotion';
+import type { Promotion, PromotionDetail, PromotionWithMarket } from '../types/promotion';
 
 const PAGE_SIZE = 20;
 const SELECT_WITH_MARKET = '*, mercados (name)';
@@ -64,6 +64,15 @@ export const promotionsService = {
 
   async create(input: TablesInsert<'promotions'>) {
     return supabase.from('promotions').insert(input).select().single();
+  },
+
+  async findSimilar({ marketId, title, price }: { marketId: string; title: string; price: number }) {
+    const result = await supabase.rpc('find_similar_active_promotions', {
+      p_market_id: marketId,
+      p_title: title,
+      p_price: price,
+    });
+    return { ...result, data: result.data as unknown as Promotion[] | null };
   },
 };
 

@@ -50,6 +50,10 @@ export function CreatePromotionScreen({ navigation }: Props) {
           analysis={analysis}
           onBack={() => setStepIndex(0)}
           onPublished={() => setStepIndex(2)}
+          onDuplicateConfirmed={() => {
+            handleReset();
+            navigation.navigate('Home');
+          }}
         />
       ) : (
         <PublishStep

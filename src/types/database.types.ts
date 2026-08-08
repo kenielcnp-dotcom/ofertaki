@@ -723,6 +723,10 @@ export type Database = {
         Args: { p_column: string; p_delta: number; p_promotion_id: string }
         Returns: undefined
       }
+      find_similar_active_promotions: {
+        Args: { p_market_id: string; p_price: number; p_title: string }
+        Returns: unknown
+      }
       get_monthly_ranking: {
         Args: { p_limit?: number; p_user_id?: string }
         Returns: {

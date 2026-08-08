@@ -13,6 +13,56 @@ foram tomadas. Formato por entrada:
 
 ---
 
+## [2026-08-08] Regras do feed, Fase 2: ranking por relevância + deduplicação
+
+**Contexto**: dos 4 itens que ficaram fora da Fase 1 (2026-08-04), o
+usuário priorizou dois nesta rodada: ranking por relevância (era "por
+IA" na especificação original) e deduplicação de promoções. Reputação
+negativa/banimento e expansão dos motivos de denúncia continuam de fora.
+
+**Decisão**:
+- **"Por IA" virou score por fórmula**, não uma chamada de modelo real —
+  perguntado diretamente ao usuário (dá pra significar coisas muito
+  diferentes de custo/latência) e confirmada a opção mais barata/rápida/
+  previsível. `promotion_relevance_score(promotions)` é uma função SQL
+  `stable` exposta como *computed column* do PostgREST (mesmo princípio
+  de `freshnessTier`: sem custo por request, sem cron, calculado na hora
+  da leitura). Fórmula: frescor (peso 40, mesma janela de tempo por
+  `promotion_type`) + confirmações/curtidas (capados em 20, pra um
+  usuário engajado não dominar o feed sozinho) + `avg_rating *
+  ln(1+ratings_count)` (avaliação só pesa se tiver volume de votos) −
+  penalidade de `not_found_count`.
+- **Deduplicação usa `pg_trgm`** (similaridade de texto) em vez de
+  comparação exata de título — nomes de produto variam ("Arroz 5kg" vs
+  "Arroz Tio João pacote 5kg"). Filtro: mesmo mercado + similaridade >
+  0.35 + preço dentro de ±20%. Limite de 3 candidatas, mas o cliente só
+  usa a primeira (mais parecida) hoje.
+- **Redirecionamento é 100% client-side**, sem mesclar linhas no banco
+  (decisão já registrada antes, agora implementada): ao detectar uma
+  candidata, o wizard mostra `DuplicateModal` oferecendo "Confirmar essa
+  oferta" (chama `confirmationsService.confirm`, o mesmo caminho de
+  sempre — ganha pontos, reseta o frescor da promoção existente) em vez
+  de "Publicar mesmo assim" (segue o fluxo normal, ignorando o aviso).
+- Checagem roda só quando mercado + título + preço já estão preenchidos
+  (senão deixa a validação normal do `zod` cuidar do erro); não há
+  debounce porque só dispara no toque em "Publicar", não a cada tecla.
+
+**Alternativas consideradas**: ranking via chamada real a um LLM a cada
+carregamento do feed — descartado por custo/latência por request e por
+ser bem menos previsível/debugável que uma fórmula, numa decisão
+explícita do usuário quando perguntado; merge de linhas duplicadas no
+banco — descartado antes (ver decisão de 2026-08-04), mantido fora
+mesmo agora.
+
+**Consequências**: `pg_trgm` é a primeira extensão Postgres não-default
+habilitada no projeto. `promotion_relevance_score` e
+`find_similar_active_promotions` não têm `REVOKE EXECUTE` (diferente da
+maioria das funções `SECURITY DEFINER` do projeto) porque nenhuma das
+duas é `SECURITY DEFINER` — são funções `stable` comuns, sem escalonar
+privilégio, então `GRANT EXECUTE` pra `authenticated`/`anon` é seguro.
+
+---
+
 ## [2026-08-04] Redesenho da Promoção + fundação de expiração/relevância
 
 **Contexto**: especificação de 10 regras de feed (expiração, "não encontrei
