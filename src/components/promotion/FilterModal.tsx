@@ -10,6 +10,7 @@ import type { Market } from '../../types/promotion';
 import type { PromotionSort } from '../../services/promotions.service';
 
 const SORT_OPTIONS: { value: PromotionSort; label: string }[] = [
+  { value: 'relevance', label: 'Mais relevante' },
   { value: 'recent', label: 'Mais recente' },
   { value: 'confirmed', label: 'Mais confirmado' },
 ];

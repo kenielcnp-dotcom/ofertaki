@@ -26,7 +26,7 @@ export function FeedScreen({ navigation }: Props) {
   const [search, setSearch] = useState('');
   const [departmentId, setDepartmentId] = useState<string | null>(null);
   const [marketId, setMarketId] = useState<string | null>(null);
-  const [sort, setSort] = useState<PromotionSort>('recent');
+  const [sort, setSort] = useState<PromotionSort>('relevance');
   const [filterVisible, setFilterVisible] = useState(false);
 
   const {
@@ -49,7 +49,7 @@ export function FeedScreen({ navigation }: Props) {
   const { unreadCount } = useNotifications();
 
   const promotions = data?.pages.flat() ?? [];
-  const hasActiveFilters = !!marketId || sort !== 'recent';
+  const hasActiveFilters = !!marketId || sort !== 'relevance';
 
   const savedListItemByPromotion = useMemo(() => {
     const map = new Map<string, string>();

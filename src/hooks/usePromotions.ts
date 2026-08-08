@@ -8,7 +8,7 @@ type PromotionFilters = {
 };
 
 export function usePromotions(search?: string, filters: PromotionFilters = {}) {
-  const { marketId, departmentId, sort = 'recent' } = filters;
+  const { marketId, departmentId, sort = 'relevance' } = filters;
 
   return useInfiniteQuery({
     queryKey: ['promotions', search ?? '', marketId ?? '', departmentId ?? '', sort],
