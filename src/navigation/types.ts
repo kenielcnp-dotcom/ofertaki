@@ -21,6 +21,17 @@ export type RootStackParamList = {
   MainTabs: undefined;
   PromotionDetail: { promotionId: string };
   Ranking: undefined;
+  HistoricoConfirmacoes: undefined;
+  ItensSalvos: undefined;
+  MinhasPromocoes: undefined;
+  EditarPerfil: undefined;
+  Privacidade: undefined;
+  Seguranca: undefined;
+  ComoFunciona: undefined;
+  RegrasComunidade: undefined;
+  AjudaSuporte: undefined;
+  TermosUso: undefined;
+  PoliticaPrivacidade: undefined;
 };
 
 // Telas dentro das abas precisam navegar para rotas do stack pai (PromotionDetail, Ranking).

@@ -3,6 +3,17 @@
 > Histórico de mudanças relevantes no projeto. Formato: mais recente no topo.
 > O detalhe de cada decisão fica em `decisions.md`.
 
+## [2026-08-08] Perfil do Usuário, Telas Legais (LGPD) e Navegação
+
+- **Navegação do Perfil**: A tela `ProfileScreen` teve seus botões de menu ativados. O botão "Dispositivos conectados" foi removido a pedido.
+- **Telas Legais Reais**: Foram criadas telas de texto baseadas na LGPD (Lei 13.709/2018) e no portal COP30.
+  - `PoliticaPrivacidadeScreen`: Traz estrutura de privacidade real (Finalidade, Dados Tratados, Segurança e Direitos do Titular - Art. 18).
+  - `TermosUsoScreen`: Aborda o Marco Civil da Internet e define as obrigações do usuário no app e limites de responsabilidade da plataforma.
+  - `ComoFuncionaScreen`, `RegrasComunidadeScreen` e `AjudaSuporteScreen`: Criadas para preencher o bloco "Sobre o Ofertaki" com conteúdo funcional.
+- **Empty States**: Criadas telas "placeholder" padronizadas (usando o componente `EmptyState`) para as funcionalidades futuras, garantindo que o app já não quebre na navegação:
+  - Histórico de Confirmações, Itens Salvos, Minhas Promoções, Editar Perfil, Privacidade e Segurança.
+- **Correções TypeScript**: Removida tentativa indevida de injetar botão nativo de voltar usando o `<ScreenHeader />` em telas que já ganham o cabeçalho Stack nativo, evitando sobreposição e erros de tipos.
+
 ## [2026-08-04] Redesenho da tela de Promoção + fundação de expiração/relevância
 
 - Migration `0021_feed_relevance_phase1.sql`: `promotions.promotion_type`
